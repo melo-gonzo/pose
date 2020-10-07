@@ -9,15 +9,8 @@ import pandas as pd
 
 # download one of the output folders with json files from google drive
 # put in the path to that data here
-dataPath = 'C:\\Users\\carme\\Desktop\\TheProverbialCode\\run\\keypointData\\lateral2018\\'
-# also need the video used to create the data (jk not yet)
-# cap = cv2.VideoCapture(dataPath + '\\lateral.mov')
-# def get_vid_properties():
-#     width = int(cap.get(3))  # float
-#     height = int(cap.get(4))  # float
-#     cap.release()
-#     return width, height
-
+dataPath = 'C:\\Users\\carme\\Desktop\\TheProverbialCode\\StickFigure\\keypointData' \
+           '\\lateral_9_17_2020\\'
 
 column_names = ['x', 'y', 'acc']
 path_to_json = dataPath
@@ -38,7 +31,10 @@ for file in json_files:
             temp.append(v)
         # Multiple points detected. could be problematic in future. hack for now
         elif len(v) > 4:
-            temp.append(v[:3])
+            highest_confidence_idx = (np.argmax(v[2::3]) * 3 + 3) - 1
+            # yeet = v[highest_confidence_idx-2:highest_confidence_idx]
+            print('Keeping estimates with highest confidence YEET', end='\r')
+            temp.append(v[highest_confidence_idx - 2:highest_confidence_idx])
         else:
             # No detection - record zeros
             temp.append([0, 0, 0])
@@ -55,93 +51,53 @@ body_keypoints_df.reset_index()
 d = np.array(body_keypoints_df)
 d = np.reshape(d, (len(d) // 25, 25, 3))
 
+
 # plot right/left knee/ankle. it looks decent, but has some behavior that isnt right.
 # from visually inspecting the video, it is clear that right/left sides of body are
 # being confused at some points. lets fix that
-fig, (ax1) = plt.subplots(1, 1)
-ax1.plot(d[:, 14, 0], d[:, 14, 1], 'k', label='LAnkel')
-ax1.plot(d[:, 11, 0], d[:, 11, 1], 'r', label='RAnkel')
-ax1.plot(d[:, 13, 0], d[:, 13, 1], 'k', label='LKnee')
-ax1.plot(d[:, 10, 0], d[:, 10, 1], 'r', label='RKnee')
-ax1.invert_yaxis()
-ax1.legend()
-ax1.set_ylabel('y', rotation=0)
-ax1.set_xlabel('x')
-fig.tight_layout()
-plt.show()
-
-connections = [(17, 15), (15, 0), (0, 16), (16, 18), (0, 1), (1, 2), (2, 3), (3, 4), (1, 5), (5, 6),
-               (6, 7), (1, 8), (8, 9), (9, 10), (10, 11), (11, 24), (11, 22), (22, 23), (8, 12),
-               (12, 13), (13, 14), (14, 21), (14, 19), (19, 20)]
+def example_plot():
+    fig, (ax1) = plt.subplots(1, 1)
+    ax1.plot(d[:, 14, 0], d[:, 14, 1], 'k', label='LAnkel')
+    ax1.plot(d[:, 11, 0], d[:, 11, 1], 'r', label='RAnkel')
+    ax1.plot(d[:, 13, 0], d[:, 13, 1], 'b', label='LKnee')
+    ax1.plot(d[:, 10, 0], d[:, 10, 1], 'g', label='RKnee')
+    ax1.invert_yaxis()
+    ax1.legend()
+    ax1.set_ylabel('y', rotation=0)
+    ax1.set_xlabel('x')
+    fig.tight_layout()
+    plt.show()
 
 
-def moving_average(ma, data):
-    csum = np.cumsum(np.insert(data, np.ones(ma + 1), 0))
-    mavg = (csum[ma:] - csum[:-ma]) / float(ma)
-    mavg = np.delete(mavg, 0)
-    mavg[0] = mavg[1]
-    return mavg
+def make_video(d):
+    def draw_lines(r, connections):
+        img = np.ones((frame_height, frame_width, 3)).astype('uint8')
+        for c in connections:
+            pt1 = tuple(r[c[0]][:2])
+            pt2 = tuple(r[c[1]][:2])
+            print(c)
+            cv2.line(img, pt1, pt2, (0, 255, 0), 1)
+            cv2.imshow('', img)
+            cv2.waitKey(1)
+        return img
+
+    connections = [(17, 15), (15, 0), (0, 16), (16, 18), (0, 1), (1, 2), (2, 3), (3, 4), (1, 5),
+                   (5, 6), (6, 7), (1, 8), (8, 9), (9, 10), (10, 11), (11, 24), (11, 22), (22, 23),
+                   (8, 12), (12, 13), (13, 14), (14, 21), (14, 19), (19, 20)]
+
+    frame_width, frame_height = 2560, 556
+    print('Hard coded video dims')
+    codec = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+    out = cv2.VideoWriter('stick.avi', codec, 10, (frame_width, frame_height))
+    img = np.ones((frame_height, frame_width, 3)).astype('uint8')
+    for k in range(len(d[:, 0])):
+        dd = d[k, :].astype('int')
+        frame = draw_lines(dd, connections)
+        print(frame)
+        out.write(frame)
+
+    out.release()
+    cv2.destroyAllWindows()
 
 
-def interp_lazy(y1, y0):
-    return 2 * y1 - y0
-
-
-def brute_avg(data):
-    return np.mean(data, axis=0)
-
-
-# plot knee keypoints
-d = np.array(body_keypoints_df)
-d = np.reshape(d, (len(d) // 25, 25, 3))
-d_og = d.copy()
-plt.plot(d[:, 10, 0], 'k', label='LKnee')
-plt.plot(d[:, 13, 0], 'r', label='RKnee')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.legend()
-plt.title('Original Data')
-plt.show()
-
-# Find anomalous points and try to replace with symmetric point (opposite side of body)
-for k in range(5, len(d[:, :, 0])):
-    if k == 62:
-        print('yeet')
-    avgR = brute_avg(d[k - 5:k - 1, 10, 0])
-    avgL = brute_avg(d[k - 5:k - 1, 13, 0])
-    R = d[k, 10, 0]
-    L = d[k, 13, 0]
-    adR = abs(avgR - R) / R
-    adL = abs(avgL - L) / L
-    if adR > 0.15:
-        adRnew = abs(avgR - L) / L
-        if adRnew < 0.15:
-            d[k, 10, 0], d[k, 10, 1] = d_og[k, 13, 0], d_og[k, 13, 1]
-        else:
-            d[k, 10, 0], d[k, 10, 1] = interp_lazy(d[k - 2, 10, 0], d[k - 1, 10, 0]), interp_lazy(
-                d[k - 2, 10, 1], d[k - 1, 10, 1])
-    if adL > 0.15:
-        adLnew = abs(avgL - R) / R
-        if adLnew < 0.15:
-            d[k, 13, 0], d[k, 13, 1] = d_og[k, 10, 0], d_og[k, 10, 1]
-        else:
-            d[k, 13, 0], d[k, 13, 1] = interp_lazy(d[k - 2, 13, 0], d[k - 1, 13, 0]), interp_lazy(
-                d[k - 2, 13, 1], d[k - 1, 13, 1])
-
-plt.plot(d[:, 10, 0], 'k', label='LKnee')
-plt.plot(d[:, 13, 0], 'r', label='RKnee')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.legend()
-plt.title('Fixed Data')
-plt.show()
-
-fig, (ax1) = plt.subplots(1, 1)
-ax1.plot(d[:, 13, 0], d[:, 13, 1], 'k', label='LKnee')
-ax1.plot(d[:, 10, 0], d[:, 10, 1], 'r', label='RKnee')
-ax1.invert_yaxis()
-ax1.legend()
-ax1.set_ylabel('y', rotation=0)
-ax1.set_xlabel('x')
-fig.tight_layout()
-plt.show()
+make_video(d)
