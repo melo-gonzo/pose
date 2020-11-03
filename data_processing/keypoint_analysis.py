@@ -1,5 +1,6 @@
 # Huge shoutout to https://github.com/CMU-Perceptual-Computing-Lab/openpose
 # Huge shoutout to https://tinyurl.com/y2vuqgxv
+# Huge s/o to https://www.learnopencv.com/deep-learning-based-human-pose-estimation-using-opencv-cpp-python/
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -202,17 +203,76 @@ def crop_and_center_video(video_path, d):
         out.write(tile)
     out.release()
     cv2.destroyAllWindows()
-    plt.imshow(tile[:, :, ::-1])
-    plt.show()
     return all_frames, d
 
 
-d = get_keypoint_data(data_path).astype('int')
-frames, d_centered = crop_and_center_video(video_path, d)
-d_corrected = correct_tilt(d_centered)
-# make_centered_video(d)
-angle_dict = calculate_angles(d_corrected)
-for key in list(angle_dict.keys()):
-    plt.plot(np.abs(angle_dict[key]), label=key)
+def inference(media_path):
+    protoFile = '/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_deploy_linevec_faster_4_stages.prototxt'
+    weightsFile = "/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_iter_160000.caffemodel"
+    connections = [(0, 1), (1, 2), (1, 5), (2, 3), (3, 4), (5, 6), (6, 7), (1, 14), (14, 11), (14, 8), (8, 9), (9, 10),
+                   (11, 12), (12, 13)]
+    net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+    file_type = media_path.split('.')[-1]
+    photo_types = ['jpg', 'jpeg', 'png']
+    video_types = ['mov', 'avi', 'mp4']
+    video = True if file_type in video_types else False
+    photo = True if file_type in photo_types else False
+    thresh = 0.1
+    if video:
+        print('Do video pipeline :)')
+    elif photo:
+        frame = cv2.imread(media_path)
+        in_h = frame.shape[0]
+        in_w = frame.shape[1]
+        inWidth = 480
+        inHeight = 480
+        inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (inWidth, inHeight), (0, 0, 0), swapRB=False, crop=False)
+        net.setInput(inpBlob)
+        output = net.forward()
+        print(output.shape)
+        out_h = output.shape[2]
+        out_w = output.shape[3]
+        points = []
+        x_data, y_data = [], []
+        # Iterate through the returned output and store the data
+        # A bit of a hack for right now, should be cleaned up
+        for i in range(15):
+            probMap = output[0, i, :, :]
+            minVal, prob, minLoc, point = cv2.minMaxLoc(probMap)
+            x = (in_w * point[0]) / out_w
+            y = (in_h * point[1]) / out_h
+            if prob > thresh:
+                points.append((int(x), int(y)))
+                x_data.append(x)
+                y_data.append(y)
+                cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 255), thickness=-1, lineType=cv2.FILLED)
+            else:
+                points.append((None, None))
+                x_data.append(None)
+                y_data.append(None)
+        for pair in connections:
+            partA = pair[0]
+            partB = pair[1]
+            if points[partA][0] is not None and points[partB][0] is not None:
+                cv2.line(frame, points[partA], points[partB], (0, 255, 0), 3)
+        cv2.imshow('inference', frame)
+        cv2.imwrite('/home/carmelo/Documents/pose/videos/bike0_inference.png', frame)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    else:
+        print('File type not supported!')
 
-plt.legend()
+
+# d = get_keypoint_data(data_path).astype('int')
+# frames, d_centered = crop_and_center_video(video_path, d)
+# d_corrected = correct_tilt(d_centered)
+# # make_centered_video(d)
+# angle_dict = calculate_angles(d_corrected)
+# for key in list(angle_dict.keys()):
+#     plt.plot(np.abs(angle_dict[key]), label=key)
+# plt.legend()
+
+media_path = '/home/carmelo/Documents/pose/videos/bike0.jpg'
+inference(media_path)
