@@ -121,10 +121,8 @@ def make_centered_video(d):
 
 def get_angle(v1, v2):
     print('angle in degrees')
-    if v2[0] != 0:
-        return np.arctan2(np.array([v1[0], v2[0]]), np.array([v1[1], v2[1]]))[-1] * 180 / np.pi
-    else:
-        return np.arctan2(np.array([v1[0], v2[0]]), np.array([v1[1], v2[1]]))[0] * 180 / np.pi
+    angles = np.arctan2(np.array([v2[1], v1[1]]), np.array([v2[0], v1[0]])) * 180 / np.pi
+    return np.round(angles[0] - angles[1], 1)
 
 
 def center_data(d):
@@ -135,36 +133,56 @@ def center_data(d):
     return d
 
 
-def calculate_angles(d):
-    vert = (0, 1)
-    horiz = (1, 0)
-    angle_dict = {'Torso-Vert': [],
-                  'Torso-LThigh': [],
-                  'Torso-RThigh': [],
-                  'LThigh-LShin': [],
-                  'RThigh-RShin': [],
-                  'LShin-Vert': [],
-                  'RShin-Vert': [],
-                  'LShin-LFoot': [],
-                  'RShin-RFoot': []}
-    for k in range(len(d[:, 0, 0])):
-        dv = d[k, :, :]
-        torso = (dv[1, 0] - dv[8, 0], dv[1, 1] - dv[8, 1])
-        lthigh = (dv[12, 0] - dv[13, 0], dv[12, 1] - dv[13, 1])
-        rthigh = (dv[9, 0] - dv[10, 0], dv[9, 1] - dv[10, 1])
-        lshin = (dv[14, 0] - dv[13, 0], dv[14, 1] - dv[13, 1])
-        rshin = (dv[11, 0] - dv[10, 0], dv[11, 1] - dv[10, 1])
-        lfoot = (dv[19, 0] - dv[14, 0], dv[19, 1] - dv[14, 1])
-        rfoot = (dv[22, 0] - dv[11, 0], dv[22, 1] - dv[11, 1])
-        angle_dict['Torso-Vert'].append(get_angle(vert, torso))
-        angle_dict['Torso-LThigh'].append(get_angle(vert, lthigh))
-        angle_dict['Torso-RThigh'].append(get_angle(torso, rthigh))
-        angle_dict['LThigh-LShin'].append(get_angle(lthigh, lshin))
-        angle_dict['RThigh-RShin'].append(get_angle(rthigh, rshin))
-        angle_dict['LShin-Vert'].append(get_angle(vert, lshin))
-        angle_dict['RShin-Vert'].append(get_angle(vert, rshin))
-        angle_dict['LShin-LFoot'].append(get_angle(lshin, lfoot))
-        angle_dict['RShin-RFoot'].append(get_angle(rshin, rfoot))
+def calculate_angles_mpii(d):
+    vert = (0, -1)
+    # horiz = (1, 0)
+    angle_dict = {'Head-Vert': [],
+                  'Head-Spine': [],
+                  'RHumerus-Spine': [],
+                  'LHumerus-Spine': [],
+                  'RHumerus-RRadius': [],
+                  'LHumerus-LRadius': [],
+                  'Spine-Vert': [],
+                  'Spine-LFemur': [],
+                  'Spine-RFemur': [],
+                  'LFemur-Vert': [],
+                  'RFemur-Vert': [],
+                  'LFemur-LTibia': [],
+                  'RFemur-RTibia': [],
+                  'LTibia-Vert': [],
+                  'RTibia-Vert': []}
+    frames = len(d.shape)
+    n_frames = d.shape[0] if frames >= 3 else 1
+    for k in range(n_frames):
+        try:
+            dv = d[k, :, :]
+        except Exception:
+            dv = d
+        head = (dv[0, 0] - dv[1, 0], dv[0, 1] - dv[1, 1])
+        spine = (dv[1, 0] - dv[14, 0], dv[1, 1] - dv[14, 1])
+        lhumerus = (dv[5, 0] - dv[6, 0], dv[5, 1] - dv[6, 1])
+        rhumerus = (dv[2, 0] - dv[3, 0], dv[2, 1] - dv[3, 1])
+        lradius = (dv[6, 0] - dv[7, 0], dv[6, 1] - dv[7, 1])
+        rradius = (dv[3, 0] - dv[4, 0], dv[3, 1] - dv[4, 1])
+        lfemur = (dv[11, 0] - dv[12, 0], dv[11, 1] - dv[12, 1])
+        rfemur = (dv[8, 0] - dv[9, 0], dv[8, 1] - dv[9, 1])
+        ltibia = (dv[12, 0] - dv[13, 0], dv[12, 1] - dv[13, 1])
+        rtibia = (dv[9, 0] - dv[10, 0], dv[9, 1] - dv[10, 1])
+        angle_dict['Head-Vert'].append(get_angle(head, vert))
+        angle_dict['Head-Spine'].append(get_angle(head, spine))
+        angle_dict['RHumerus-Spine'].append(get_angle(rhumerus, spine))
+        angle_dict['LHumerus-Spine'].append(get_angle(lhumerus, spine))
+        angle_dict['RHumerus-RRadius'].append(get_angle(rhumerus, rradius))
+        angle_dict['LHumerus-LRadius'].append(get_angle(lhumerus, lradius))
+        angle_dict['Spine-Vert'].append(get_angle(spine, vert))
+        angle_dict['Spine-LFemur'].append(get_angle(spine, lfemur))
+        angle_dict['Spine-RFemur'].append(get_angle(spine, rfemur))
+        angle_dict['LFemur-Vert'].append(get_angle(lfemur, vert))
+        angle_dict['RFemur-Vert'].append(get_angle(rfemur, vert))
+        angle_dict['LFemur-LTibia'].append(get_angle(lfemur, ltibia))
+        angle_dict['RFemur-RTibia'].append(get_angle(rfemur, rtibia))
+        angle_dict['LTibia-Vert'].append(get_angle(ltibia, vert))
+        angle_dict['RTibia-Vert'].append(get_angle(rtibia, vert))
     return angle_dict
 
 
@@ -215,15 +233,21 @@ def inference(media_path):
     net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
     net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
     file_type = media_path.split('.')[-1]
-    photo_types = ['jpg', 'jpeg', 'png']
-    video_types = ['mov', 'avi', 'mp4']
+    photo_types = ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG']
+    video_types = ['mov', 'avi', 'mp4', 'MOV', 'AVI', 'MP4']
     video = True if file_type in video_types else False
     photo = True if file_type in photo_types else False
     thresh = 0.1
     if video:
+        frame = points = angles = None
         print('Do video pipeline :)')
     elif photo:
         frame = cv2.imread(media_path)
+        in_h = frame.shape[0]
+        in_w = frame.shape[1]
+        scale_percent = (1024 / in_h)
+        frame = cv2.resize(frame,
+                           (int(in_w * scale_percent), int(in_h * scale_percent)))  # , interpolation=cv2.INTER_AREA)
         in_h = frame.shape[0]
         in_w = frame.shape[1]
         inWidth = 480
@@ -257,12 +281,15 @@ def inference(media_path):
             partB = pair[1]
             if points[partA][0] is not None and points[partB][0] is not None:
                 cv2.line(frame, points[partA], points[partB], (0, 255, 0), 3)
-        cv2.imshow('inference', frame)
-        cv2.imwrite('/home/carmelo/Documents/pose/videos/bike0_inference.png', frame)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        angles = calculate_angles_mpii(np.array(points))
+        # cv2.imshow('inference', frame)
+        # cv2.imwrite('/home/carmelo/Documents/pose/videos/bike0_inference.png', frame)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
     else:
-        print('File type not supported!')
+        frame = points = angles = None
+        print('File type not supported!: ' + media_path)
+    return frame, points, angles
 
 
 # d = get_keypoint_data(data_path).astype('int')
@@ -274,5 +301,8 @@ def inference(media_path):
 #     plt.plot(np.abs(angle_dict[key]), label=key)
 # plt.legend()
 
-media_path = '/home/carmelo/Documents/pose/videos/bike0.jpg'
-inference(media_path)
+# media_path = '/home/carmelo/Documents/pose/videos/bike0.jpg'
+# frame, points, angles = inference(media_path)
+# b = np.array(points)
+# a = calculate_angles_mpii(b)
+# print(a)

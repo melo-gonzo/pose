@@ -35,13 +35,15 @@ class FetchEmail():
         """
         self.connection.close()
 
-    def send_email(self, attachment_path=''):
+    def send_email(self, angle_text, attachment_path=''):
         attachment = open(attachment_path, 'rb').read()
         msg = MIMEMultipart()
         msg['Subject'] = 'AI Bike Fit Results!'
         msg['To'] = self.output_email
-        msg['From'] = 'ai.bikefit@gmail.com'
-        text = MIMEText('Hey there ' + self.output_name + '. You\'re one of the first users of AI Bike Fit! I\'m trying to draw a stick figure on you. Hopefully it turned out ok. :)')
+        msg['From'] = self.username
+        body_text = 'Hey there ' + self.output_name.split(' ')[0] + '. You\'re one of the first users of AI Bike Fit! I\'m trying to draw a stick figure on you. Hopefully it turned out ok. :)'
+        body_text = body_text + angle_text if angle_text is not None else body_text
+        text = MIMEText(body_text)
         # text = MIMEText('Yeehaw!')
         msg.attach(text)
         image = MIMEImage(attachment, name=os.path.basename(attachment_path))
@@ -55,6 +57,15 @@ class FetchEmail():
             smtp.login(msg["From"], self.password)
             smtp.send_message(msg)
             smtp.quit()
+
+    def gen_angle_text(self, angles):
+        text = '\n\nWe were able to figure out how your limbs are positioned relative to one another.' \
+               ' Here are some of the key measurements we came up with (in degrees):\n'
+        keys = angles.keys()
+        for key in keys:
+            text = text + key + ': ' + str(np.abs(angles[key])) + '\n'
+        text = text + '\nEnjoy your data!'
+        return text
 
     def save_attachment(self, msg,
                         download_folder='/home/carmelo/Documents/pose/data_processing/ai_bikefit_downloads/'):
@@ -119,7 +130,7 @@ class FetchEmail():
 
 
 def do_email_thang():
-    username = "self-explanatory@gmail.com"
+    username = "self-explanatory @gmail.com"
     password = "sikeYOUthought"
     while True:
         AIBikeFit = FetchEmail(mail_server="imap.gmail.com",
@@ -135,13 +146,14 @@ def do_email_thang():
                 att_path = AIBikeFit.save_attachment(email)
                 if att_path is not None:
                     print('Performing inference')
-                    frame, points = inference(att_path)
+                    frame, points, angles = inference(att_path)
+                    angle_text = AIBikeFit.gen_angle_text(angles) if angles is not None else None
                     inference_path = att_path.split('.')
                     inference_path = inference_path[0] + '_inference.' + inference_path[1]
                     print('Saving inference image')
                     cv2.imwrite(inference_path, frame)
                     print('Sending email to user')
-                    AIBikeFit.send_email(inference_path)
+                    AIBikeFit.send_email(angle_text, inference_path)
                     print('Sent to: ' + str(AIBikeFit.parse_email_address(email)))
         time.sleep(29)
         AIBikeFit.close_connection()
