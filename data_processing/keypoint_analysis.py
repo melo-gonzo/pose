@@ -120,9 +120,11 @@ def make_centered_video(d):
 
 
 def get_angle(v1, v2):
-    print('angle in degrees')
-    angles = np.arctan2(np.array([v2[1], v1[1]]), np.array([v2[0], v1[0]])) * 180 / np.pi
-    return np.round(angles[0] - angles[1], 1)
+    try:
+        angles = np.arctan2(np.array([v2[1], v1[1]]), np.array([v2[0], v1[0]])) * 180 / np.pi
+        return np.round(angles[0] - angles[1], 1)
+    except:
+        return -999
 
 
 def center_data(d):
@@ -134,23 +136,23 @@ def center_data(d):
 
 
 def calculate_angles_mpii(d):
-    vert = (0, -1)
+    vert = (0, 1)
     # horiz = (1, 0)
-    angle_dict = {'Head-Vert': [],
-                  'Head-Spine': [],
-                  'RHumerus-Spine': [],
-                  'LHumerus-Spine': [],
-                  'RHumerus-RRadius': [],
-                  'LHumerus-LRadius': [],
-                  'Spine-Vert': [],
-                  'Spine-LFemur': [],
-                  'Spine-RFemur': [],
-                  'LFemur-Vert': [],
-                  'RFemur-Vert': [],
-                  'LFemur-LTibia': [],
-                  'RFemur-RTibia': [],
-                  'LTibia-Vert': [],
-                  'RTibia-Vert': []}
+    angle_dict = {'Head-Vert (0,1),(Vert)': [],
+                  'Head-Spine (0,1),(1,14)': [],
+                  'RHumerus-Spine (2,3),(1,14)': [],
+                  'LHumerus-Spine (5,6),(1,14)': [],
+                  'RHumerus-RRadius (2,3),(3,4)': [],
+                  'LHumerus-LRadius (5,6),(6,7)': [],
+                  'Spine-Vert (1,14),(Vert)': [],
+                  'Spine-LFemur (1,14),(11,12)': [],
+                  'Spine-RFemur (1,14),(8,9)': [],
+                  'LFemur-Vert (11,12),(Vert)': [],
+                  'RFemur-Vert (8,9),(Vert)': [],
+                  'LFemur-LTibia (11,12),(12,13)': [],
+                  'RFemur-RTibia (8,9),(9,10)': [],
+                  'LTibia-Vert (12,13),(Vert)': [],
+                  'RTibia-Vert (9,10),(Vert)': []}
     frames = len(d.shape)
     n_frames = d.shape[0] if frames >= 3 else 1
     for k in range(n_frames):
@@ -168,21 +170,21 @@ def calculate_angles_mpii(d):
         rfemur = (dv[8, 0] - dv[9, 0], dv[8, 1] - dv[9, 1])
         ltibia = (dv[12, 0] - dv[13, 0], dv[12, 1] - dv[13, 1])
         rtibia = (dv[9, 0] - dv[10, 0], dv[9, 1] - dv[10, 1])
-        angle_dict['Head-Vert'].append(get_angle(head, vert))
-        angle_dict['Head-Spine'].append(get_angle(head, spine))
-        angle_dict['RHumerus-Spine'].append(get_angle(rhumerus, spine))
-        angle_dict['LHumerus-Spine'].append(get_angle(lhumerus, spine))
-        angle_dict['RHumerus-RRadius'].append(get_angle(rhumerus, rradius))
-        angle_dict['LHumerus-LRadius'].append(get_angle(lhumerus, lradius))
-        angle_dict['Spine-Vert'].append(get_angle(spine, vert))
-        angle_dict['Spine-LFemur'].append(get_angle(spine, lfemur))
-        angle_dict['Spine-RFemur'].append(get_angle(spine, rfemur))
-        angle_dict['LFemur-Vert'].append(get_angle(lfemur, vert))
-        angle_dict['RFemur-Vert'].append(get_angle(rfemur, vert))
-        angle_dict['LFemur-LTibia'].append(get_angle(lfemur, ltibia))
-        angle_dict['RFemur-RTibia'].append(get_angle(rfemur, rtibia))
-        angle_dict['LTibia-Vert'].append(get_angle(ltibia, vert))
-        angle_dict['RTibia-Vert'].append(get_angle(rtibia, vert))
+        angle_dict['Head-Vert (0,1),(Vert)'].append(get_angle(head, vert))
+        angle_dict['Head-Spine (0,1),(1,14)'].append(get_angle(head, spine))
+        angle_dict['RHumerus-Spine (2,3),(1,14)'].append(get_angle(rhumerus, spine))
+        angle_dict['LHumerus-Spine (5,6),(1,14)'].append(get_angle(lhumerus, spine))
+        angle_dict['RHumerus-RRadius (2,3),(3,4)'].append(get_angle(rhumerus, rradius))
+        angle_dict['LHumerus-LRadius (5,6),(6,7)'].append(get_angle(lhumerus, lradius))
+        angle_dict['Spine-Vert (1,14),(Vert)'].append(get_angle(spine, vert))
+        angle_dict['Spine-LFemur (1,14),(11,12)'].append(get_angle(spine, lfemur))
+        angle_dict['Spine-RFemur (1,14),(8,9)'].append(get_angle(spine, rfemur))
+        angle_dict['LFemur-Vert (11,12),(Vert)'].append(get_angle(lfemur, vert))
+        angle_dict['RFemur-Vert (8,9),(Vert)'].append(get_angle(rfemur, vert))
+        angle_dict['LFemur-LTibia (11,12),(12,13)'].append(get_angle(lfemur, ltibia))
+        angle_dict['RFemur-RTibia (8,9),(9,10)'].append(get_angle(rfemur, rtibia))
+        angle_dict['LTibia-Vert (12,13),(Vert)'].append(get_angle(ltibia, vert))
+        angle_dict['RTibia-Vert (9,10),(Vert)'].append(get_angle(rtibia, vert))
     return angle_dict
 
 
@@ -224,11 +226,20 @@ def crop_and_center_video(video_path, d):
     return all_frames, d
 
 
-def inference(media_path):
-    protoFile = '/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_deploy_linevec_faster_4_stages.prototxt'
-    weightsFile = "/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_iter_160000.caffemodel"
-    connections = [(0, 1), (1, 2), (1, 5), (2, 3), (3, 4), (5, 6), (6, 7), (1, 14), (14, 11), (14, 8), (8, 9), (9, 10),
-                   (11, 12), (12, 13)]
+def inference(media_path, net_factor=30, model='mpii'):
+    if model == 'mpii':
+        protoFile = '/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_deploy_linevec_faster_4_stages.prototxt'
+        weightsFile = "/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_iter_160000.caffemodel"
+        connections = [(0, 1), (1, 2), (1, 5), (2, 3), (3, 4), (5, 6), (6, 7), (1, 14), (14, 11), (14, 8), (8, 9),
+                       (9, 10), (11, 12), (12, 13)]
+        colors = [(53, 2, 153), (0, 53, 152), (0, 152, 103), (1, 98, 154), (5, 152, 154), (0, 155, 49), (0, 153, 0),
+                  (0, 0, 153), (155, 103, 0), (53, 154, 0), (101, 153, 0), (151, 152, 2), (153, 51, 0), (153, 0, 0)]
+    elif model == 'body_25':
+        protoFile = '/home/carmelo/Documents/pose/openpose/models/pose/body_25/pose_deploy.prototxt'
+        weightsFile = "/home/carmelo/Documents/pose/openpose/models/pose/body_25/pose_iter_584000.caffemodel"
+        connections = [(17, 15), (15, 0), (0, 16), (16, 18), (0, 1), (1, 2), (2, 3), (3, 4), (1, 5),
+                       (5, 6), (6, 7), (1, 8), (8, 9), (9, 10), (10, 11), (11, 24), (11, 22), (22, 23),
+                       (8, 12), (12, 13), (13, 14), (14, 21), (14, 19), (19, 20)]
     net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
     net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
     net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
@@ -250,8 +261,8 @@ def inference(media_path):
                            (int(in_w * scale_percent), int(in_h * scale_percent)))  # , interpolation=cv2.INTER_AREA)
         in_h = frame.shape[0]
         in_w = frame.shape[1]
-        inWidth = 480
-        inHeight = 480
+        inWidth = int(16 * net_factor)
+        inHeight = int(16 * net_factor)
         inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (inWidth, inHeight), (0, 0, 0), swapRB=False, crop=False)
         net.setInput(inpBlob)
         output = net.forward()
@@ -262,7 +273,9 @@ def inference(media_path):
         x_data, y_data = [], []
         # Iterate through the returned output and store the data
         # A bit of a hack for right now, should be cleaned up
-        for i in range(15):
+        # frame = np.zeros((in_h,in_w,3)).astype('uint8')
+        print('for 1')
+        for i in range(len(connections) + 1):
             probMap = output[0, i, :, :]
             minVal, prob, minLoc, point = cv2.minMaxLoc(probMap)
             x = (in_w * point[0]) / out_w
@@ -273,24 +286,44 @@ def inference(media_path):
                 y_data.append(y)
                 cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 255), thickness=-1, lineType=cv2.FILLED)
             else:
-                points.append((None, None))
-                x_data.append(None)
-                y_data.append(None)
-        for pair in connections:
+                points.append((0, 0))
+                x_data.append(0)
+                y_data.append(0)
+        print('for 2')
+        for idx, pair in enumerate(connections):
             partA = pair[0]
             partB = pair[1]
             if points[partA][0] is not None and points[partB][0] is not None:
-                cv2.line(frame, points[partA], points[partB], (0, 255, 0), 3)
-        angles = calculate_angles_mpii(np.array(points))
+                cv2.line(frame, points[partA], points[partB], colors[idx], 3)
+        print('for 3')
+        for idx, pt in enumerate(points):
+            try:
+                x = pt[0]
+                y = pt[1]
+                if idx > 9:
+                    cv2.putText(frame, "{}".format(idx), (int(x - 50), int(y - 13)), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                                (0, 0, 255),
+                                2, lineType=cv2.LINE_AA)
+                else:
+                    cv2.putText(frame, "{}".format(idx), (int(x - 25), int(y - 13)), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                                (0, 0, 255), 2, lineType=cv2.LINE_AA)
+            except TypeError:
+                print('no point here')
+                pass
+        print('doing angles')
+        try:
+            angles = calculate_angles_mpii(np.array(points))
+        except:
+            print('NO ANGLES!!')
+            pass
         # cv2.imshow('inference', frame)
-        # cv2.imwrite('/home/carmelo/Documents/pose/videos/bike0_inference.png', frame)
+        # cv2.imwrite('/home/carmelo/Documents/pose/data_processing/mpii_keypoints.png', frame)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
     else:
         frame = points = angles = None
         print('File type not supported!: ' + media_path)
     return frame, points, angles
-
 
 # d = get_keypoint_data(data_path).astype('int')
 # frames, d_centered = crop_and_center_video(video_path, d)
@@ -302,7 +335,18 @@ def inference(media_path):
 # plt.legend()
 
 # media_path = '/home/carmelo/Documents/pose/videos/bike0.jpg'
-# frame, points, angles = inference(media_path)
+# frame, points, angles = inference(media_path, model='mpii')
+
 # b = np.array(points)
 # a = calculate_angles_mpii(b)
 # print(a)
+
+# keys = angles.keys()
+# text = ''
+# for key in keys:
+#     key_text = key.split(' ')
+#     key_value = str(np.abs(angles[key]))
+#     f = "{:<20} {:<15} {:<10}".format(key_text[0], key_text[1], key_value)
+#     text = text + f + '\n'
+#
+# print(text)
