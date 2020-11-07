@@ -1,7 +1,7 @@
 # Huge shoutout to https://github.com/CMU-Perceptual-Computing-Lab/openpose
 # Huge shoutout to https://tinyurl.com/y2vuqgxv
 # Huge s/o to https://www.learnopencv.com/deep-learning-based-human-pose-estimation-using-opencv-cpp-python/
-from scipy.signal import find_peaks
+# from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -338,5 +338,5 @@ def do_example_workflow():
 
 
 def do_an_inference():
-    media_path = '/home/carmelo/Documents/pose/videos/bike0.jpg'
+    media_path = '/home/carmelo/Documents/pose/data_processing/biker.jpg'
     frame, points, angles = inference(media_path, model='mpii')

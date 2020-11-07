@@ -45,7 +45,7 @@ class FetchEmail():
         msg['To'] = self.output_email
         msg['From'] = self.username
         body_text = 'Hey there ' + self.output_name.split(' ')[
-            0] + '. You\'re one of the first users of AI Bike Fit! I\'m trying to draw a stick figure on you. Hopefully it turned out ok. :)'
+            0] + '. You\'re one of the first users of Angle Eye AI! I\'m trying to draw a stick figure on you. Hopefully it turned out ok. :)'
         body_text = body_text + angle_text if angle_text is not None else body_text
         print('4')
         text = MIMEText(body_text)
@@ -152,10 +152,7 @@ class FetchEmail():
 
 
 def do_email_thang():
-    # username = "self-explanatory @gmail.com"
-    # password = "sikeYOUthought"
-    username = 'ai.bikefit@gmail.com'
-    password = '#ashtag@yy'
+    from credentials import username, password
     while True:
         AIBikeFit = FetchEmail(mail_server="imap.gmail.com",
                                username=username,
