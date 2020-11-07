@@ -74,9 +74,9 @@ class FetchEmail():
 
     def gen_angle_text(self, angles):
         text_top = '\n\nWe were able to figure out how your limbs are positioned relative to one another.' \
-                   ' Here are some of the key measurements we came up with (in degrees):\n\n'
+                   ' Here are some of the key measurements we came up with.\n\n'
         keys = angles.keys()
-        text = "{:<20} {:<15} {:<10}".format('Pair', 'Joint Numbers', 'Angle') + '\n'
+        text = "{:<20} {:<15} {:<10}".format('Pair', 'Joint-Numbers', 'Angle') + '\n'
         for key in keys:
             key_text = key.split(' ')
             key_value = str(np.abs(angles[key])[0])
@@ -154,6 +154,8 @@ class FetchEmail():
 def do_email_thang():
     # username = "self-explanatory @gmail.com"
     # password = "sikeYOUthought"
+    username = 'ai.bikefit@gmail.com'
+    password = '#ashtag@yy'
     while True:
         AIBikeFit = FetchEmail(mail_server="imap.gmail.com",
                                username=username,
@@ -174,8 +176,13 @@ def do_email_thang():
                     top_text, angle_text = AIBikeFit.gen_angle_text(angles) if angles is not None else None
                     angle_text = angle_text.split('\n')
                     for idx, line in enumerate(angle_text):
-                        cv2.putText(frame, line, (y_start + 10, (idx * 50) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                                    (255, 255, 255), 2, lineType=cv2.LINE_AA)
+                        line = line.split()
+                        print(line)
+                        locations = [y_start + 10, y_start + 350, y_start+625]
+                        for ii, l in enumerate(line):
+                            print(ii)
+                            cv2.putText(frame, l, (locations[ii], (idx * 50) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                                        (255, 255, 255), 2, lineType=cv2.LINE_AA)
                     inference_path = att_path.split('.')
                     inference_path = inference_path[0] + '_inference.' + inference_path[1]
                     print('Saving inference image')

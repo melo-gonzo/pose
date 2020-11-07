@@ -293,7 +293,7 @@ def inference(media_path, net_factor=30, model='mpii'):
         for idx, pair in enumerate(connections):
             partA = pair[0]
             partB = pair[1]
-            if points[partA][0] is not None and points[partB][0] is not None:
+            if points[partA][0] != 0 and points[partB][0] != 0:
                 cv2.line(frame, points[partA], points[partB], colors[idx], 3)
         print('for 3')
         for idx, pt in enumerate(points):
@@ -325,28 +325,18 @@ def inference(media_path, net_factor=30, model='mpii'):
         print('File type not supported!: ' + media_path)
     return frame, points, angles
 
-# d = get_keypoint_data(data_path).astype('int')
-# frames, d_centered = crop_and_center_video(video_path, d)
-# d_corrected = correct_tilt(d_centered)
-# # make_centered_video(d)
-# angle_dict = calculate_angles(d_corrected)
-# for key in list(angle_dict.keys()):
-#     plt.plot(np.abs(angle_dict[key]), label=key)
-# plt.legend()
 
-# media_path = '/home/carmelo/Documents/pose/videos/bike0.jpg'
-# frame, points, angles = inference(media_path, model='mpii')
+def do_example_workflow():
+    d = get_keypoint_data(data_path).astype('int')
+    frames, d_centered = crop_and_center_video(video_path, d)
+    d_corrected = correct_tilt(d_centered)
+    # make_centered_video(d)
+    angle_dict = calculate_angles(d_corrected)
+    for key in list(angle_dict.keys()):
+        plt.plot(np.abs(angle_dict[key]), label=key)
+    plt.legend()
 
-# b = np.array(points)
-# a = calculate_angles_mpii(b)
-# print(a)
 
-# keys = angles.keys()
-# text = ''
-# for key in keys:
-#     key_text = key.split(' ')
-#     key_value = str(np.abs(angles[key]))
-#     f = "{:<20} {:<15} {:<10}".format(key_text[0], key_text[1], key_value)
-#     text = text + f + '\n'
-#
-# print(text)
+def do_an_inference():
+    media_path = '/home/carmelo/Documents/pose/videos/bike0.jpg'
+    frame, points, angles = inference(media_path, model='mpii')
