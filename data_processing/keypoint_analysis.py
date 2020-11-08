@@ -226,7 +226,7 @@ def crop_and_center_video(video_path, d):
     return all_frames, d
 
 
-def inference(media_path, net_factor=30, model='mpii'):
+def inference(media_path, net_factor=32, model='mpii'):
     if model == 'mpii':
         protoFile = '/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_deploy_linevec_faster_4_stages.prototxt'
         weightsFile = "/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_iter_160000.caffemodel"
@@ -266,7 +266,6 @@ def inference(media_path, net_factor=30, model='mpii'):
         inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (inWidth, inHeight), (0, 0, 0), swapRB=False, crop=False)
         net.setInput(inpBlob)
         output = net.forward()
-        print(output.shape)
         out_h = output.shape[2]
         out_w = output.shape[3]
         points = []
@@ -274,7 +273,6 @@ def inference(media_path, net_factor=30, model='mpii'):
         # Iterate through the returned output and store the data
         # A bit of a hack for right now, should be cleaned up
         # frame = np.zeros((in_h,in_w,3)).astype('uint8')
-        print('for 1')
         for i in range(len(connections) + 1):
             probMap = output[0, i, :, :]
             minVal, prob, minLoc, point = cv2.minMaxLoc(probMap)
@@ -289,13 +287,11 @@ def inference(media_path, net_factor=30, model='mpii'):
                 points.append((0, 0))
                 x_data.append(0)
                 y_data.append(0)
-        print('for 2')
         for idx, pair in enumerate(connections):
             partA = pair[0]
             partB = pair[1]
             if points[partA][0] != 0 and points[partB][0] != 0:
                 cv2.line(frame, points[partA], points[partB], colors[idx], 3)
-        print('for 3')
         for idx, pt in enumerate(points):
             try:
                 x = pt[0]
@@ -308,13 +304,10 @@ def inference(media_path, net_factor=30, model='mpii'):
                     cv2.putText(frame, "{}".format(idx), (int(x - 25), int(y - 13)), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                 (0, 0, 255), 2, lineType=cv2.LINE_AA)
             except TypeError:
-                print('no point here')
                 pass
-        print('doing angles')
         try:
             angles = calculate_angles_mpii(np.array(points))
         except:
-            print('NO ANGLES!!')
             pass
         # cv2.imshow('inference', frame)
         # cv2.imwrite('/home/carmelo/Documents/pose/data_processing/mpii_keypoints.png', frame)

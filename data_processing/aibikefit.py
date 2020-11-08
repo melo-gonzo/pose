@@ -36,40 +36,26 @@ class FetchEmail():
         self.connection.close()
 
     def send_email(self, angle_text, attachment_path=''):
-        print('1')
         attachment = open(attachment_path, 'rb').read()
-        print('2')
         msg = MIMEMultipart()
-        print('3')
-        msg['Subject'] = 'AI Bike Fit Results!'
+        msg['Subject'] = 'Angle Eye AI Results!'
         msg['To'] = self.output_email
         msg['From'] = self.username
         body_text = 'Hey there ' + self.output_name.split(' ')[
             0] + '. You\'re one of the first users of Angle Eye AI! I\'m trying to draw a stick figure on you. Hopefully it turned out ok. :)'
         body_text = body_text + angle_text if angle_text is not None else body_text
-        print('4')
         text = MIMEText(body_text)
-        # text = MIMEText('Yeehaw!')
         msg.attach(text)
-        print('5')
         image = MIMEImage(attachment, name=os.path.basename(attachment_path))
-        print('6')
         msg.attach(image)
-        # context = ssl.create_default_context()
         time.sleep(0.1)
         with smtplib.SMTP(self.mail_server, port=587) as smtp:
-            print('first ehlo')
             smtp.ehlo()
-            print('starttls')
             smtp.starttls()
-            print('second ehlo')
             smtp.ehlo()
-            print('login')
             smtp.login(msg["From"], self.password)
             time.sleep(0.1)
-            print('send message')
             smtp.send_message(msg)
-            print('quit')
             smtp.quit()
 
     def gen_angle_text(self, angles):
@@ -82,7 +68,6 @@ class FetchEmail():
             key_value = str(np.abs(angles[key])[0])
             f = "{:<20} {:<15} {:<10}".format(key_text[0], key_text[1], key_value)
             text = text + f + '\n'
-        print(text)
         text_top = text_top + text + '\nEnjoy your data!'
         v = open('results.txt', 'w')
         v.write(text)
@@ -125,7 +110,7 @@ class FetchEmail():
                 try:
                     ret, data = self.connection.fetch(message, '(RFC822)')
                 except:
-                    print("No new emails to read.")
+                    print("No new emails to read.", end='\r')
                     return None
                     # self.close_connection()
                     # exit()
@@ -148,6 +133,7 @@ class FetchEmail():
         email_address = email_address.get("From")
         ename = email_address.find('<')
         info_tuple = (email_address[:ename], email_address[ename + 1:-1])
+        print(info_tuple)
         return info_tuple
 
 
@@ -158,7 +144,6 @@ def do_email_thang():
                                username=username,
                                password=password)
         emails = AIBikeFit.fetch_unread_messages()
-        print(emails)
         if emails is not None:
             for email in emails:
                 print('Getting name and email address')
@@ -187,8 +172,8 @@ def do_email_thang():
                     print('Sending email to user')
                     AIBikeFit.send_email(top_text, inference_path)
                     print('Sent to: ' + str(AIBikeFit.parse_email_address(email)))
-        print('Sleeping')
-        time.sleep(29)
+        print('Sleeping. '+ time.strftime("%Y-%m-%dT%H%M%S", time.localtime()), end='\r')
+        time.sleep(59)
         AIBikeFit.close_connection()
         time.sleep(1)
     # frame, points = inference(media_path)
