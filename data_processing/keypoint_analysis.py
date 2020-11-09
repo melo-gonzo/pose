@@ -136,21 +136,21 @@ def center_data(d):
 
 
 def calculate_angles_mpii(d):
-    vert = (0, 1)
+    vert = (0, -1)
     # horiz = (1, 0)
     angle_dict = {'Head-Vert (0,1),(Vert)': [],
                   'Head-Spine (0,1),(1,14)': [],
-                  'RHumerus-Spine (2,3),(1,14)': [],
-                  'LHumerus-Spine (5,6),(1,14)': [],
-                  'RHumerus-RRadius (2,3),(3,4)': [],
-                  'LHumerus-LRadius (5,6),(6,7)': [],
+                  'RHumerus-Spine (3,2),(1,14)': [],
+                  'LHumerus-Spine (6,5),(1,14)': [],
+                  'RHumerus-RRadius (2,3),(4,3)': [],
+                  'LHumerus-LRadius (5,6),(7,6)': [],
                   'Spine-Vert (1,14),(Vert)': [],
-                  'Spine-LFemur (1,14),(11,12)': [],
-                  'Spine-RFemur (1,14),(8,9)': [],
+                  'Spine-LFemur (1,14),(12,11)': [],
+                  'Spine-RFemur (1,14),(9,8)': [],
                   'LFemur-Vert (11,12),(Vert)': [],
                   'RFemur-Vert (8,9),(Vert)': [],
-                  'LFemur-LTibia (11,12),(12,13)': [],
-                  'RFemur-RTibia (8,9),(9,10)': [],
+                  'LFemur-LTibia (11,12),(13,12)': [],
+                  'RFemur-RTibia (8,9),(10,9)': [],
                   'LTibia-Vert (12,13),(Vert)': [],
                   'RTibia-Vert (9,10),(Vert)': []}
     frames = len(d.shape)
@@ -160,29 +160,30 @@ def calculate_angles_mpii(d):
             dv = d[k, :, :]
         except Exception:
             dv = d
-        head = (dv[0, 0] - dv[1, 0], dv[0, 1] - dv[1, 1])
-        spine = (dv[1, 0] - dv[14, 0], dv[1, 1] - dv[14, 1])
-        lhumerus = (dv[5, 0] - dv[6, 0], dv[5, 1] - dv[6, 1])
-        rhumerus = (dv[2, 0] - dv[3, 0], dv[2, 1] - dv[3, 1])
-        lradius = (dv[6, 0] - dv[7, 0], dv[6, 1] - dv[7, 1])
-        rradius = (dv[3, 0] - dv[4, 0], dv[3, 1] - dv[4, 1])
-        lfemur = (dv[11, 0] - dv[12, 0], dv[11, 1] - dv[12, 1])
-        rfemur = (dv[8, 0] - dv[9, 0], dv[8, 1] - dv[9, 1])
-        ltibia = (dv[12, 0] - dv[13, 0], dv[12, 1] - dv[13, 1])
-        rtibia = (dv[9, 0] - dv[10, 0], dv[9, 1] - dv[10, 1])
+        head = np.array([dv[0, 0] - dv[1, 0], dv[0, 1] - dv[1, 1]])
+        spine = np.array([dv[1, 0] - dv[14, 0], dv[1, 1] - dv[14, 1]])
+        lhumerus = np.array([dv[5, 0] - dv[6, 0], dv[5, 1] - dv[6, 1]])
+        rhumerus = np.array([dv[2, 0] - dv[3, 0], dv[2, 1] - dv[3, 1]])
+        lradius = np.array([dv[6, 0] - dv[7, 0], dv[6, 1] - dv[7, 1]])
+        rradius = np.array([dv[3, 0] - dv[4, 0], dv[3, 1] - dv[4, 1]])
+        lfemur = np.array([dv[11, 0] - dv[12, 0], dv[11, 1] - dv[12, 1]])
+        rfemur = np.array([dv[8, 0] - dv[9, 0], dv[8, 1] - dv[9, 1]])
+        ltibia = np.array([dv[12, 0] - dv[13, 0], dv[12, 1] - dv[13, 1]])
+        rtibia = np.array([dv[9, 0] - dv[10, 0], dv[9, 1] - dv[10, 1]])
+        # should be labeled (to point, from point). share common connection in general
         angle_dict['Head-Vert (0,1),(Vert)'].append(get_angle(head, vert))
         angle_dict['Head-Spine (0,1),(1,14)'].append(get_angle(head, spine))
-        angle_dict['RHumerus-Spine (2,3),(1,14)'].append(get_angle(rhumerus, spine))
-        angle_dict['LHumerus-Spine (5,6),(1,14)'].append(get_angle(lhumerus, spine))
-        angle_dict['RHumerus-RRadius (2,3),(3,4)'].append(get_angle(rhumerus, rradius))
-        angle_dict['LHumerus-LRadius (5,6),(6,7)'].append(get_angle(lhumerus, lradius))
+        angle_dict['RHumerus-Spine (3,2),(1,14)'].append(get_angle(-rhumerus, spine))
+        angle_dict['LHumerus-Spine (6,5),(1,14)'].append(get_angle(-lhumerus, spine))
+        angle_dict['RHumerus-RRadius (2,3),(4,3)'].append(get_angle(rhumerus, -rradius))
+        angle_dict['LHumerus-LRadius (5,6),(7,6)'].append(get_angle(lhumerus, -lradius))
         angle_dict['Spine-Vert (1,14),(Vert)'].append(get_angle(spine, vert))
-        angle_dict['Spine-LFemur (1,14),(11,12)'].append(get_angle(spine, lfemur))
-        angle_dict['Spine-RFemur (1,14),(8,9)'].append(get_angle(spine, rfemur))
+        angle_dict['Spine-LFemur (1,14),(12,11)'].append(get_angle(spine, -lfemur))
+        angle_dict['Spine-RFemur (1,14),(9,8)'].append(get_angle(spine, -rfemur))
         angle_dict['LFemur-Vert (11,12),(Vert)'].append(get_angle(lfemur, vert))
         angle_dict['RFemur-Vert (8,9),(Vert)'].append(get_angle(rfemur, vert))
-        angle_dict['LFemur-LTibia (11,12),(12,13)'].append(get_angle(lfemur, ltibia))
-        angle_dict['RFemur-RTibia (8,9),(9,10)'].append(get_angle(rfemur, rtibia))
+        angle_dict['LFemur-LTibia (11,12),(13,12)'].append(get_angle(lfemur, -ltibia))
+        angle_dict['RFemur-RTibia (8,9),(10,9)'].append(get_angle(rfemur, -rtibia))
         angle_dict['LTibia-Vert (12,13),(Vert)'].append(get_angle(ltibia, vert))
         angle_dict['RTibia-Vert (9,10),(Vert)'].append(get_angle(rtibia, vert))
     return angle_dict
@@ -226,7 +227,7 @@ def crop_and_center_video(video_path, d):
     return all_frames, d
 
 
-def inference(media_path, net_factor=32, model='mpii'):
+def inference(media_path, net_factor=30, model='mpii'):
     if model == 'mpii':
         protoFile = '/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_deploy_linevec_faster_4_stages.prototxt'
         weightsFile = "/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_iter_160000.caffemodel"
@@ -254,6 +255,7 @@ def inference(media_path, net_factor=32, model='mpii'):
         print('Do video pipeline :)')
     elif photo:
         frame = cv2.imread(media_path)
+        # frame = np.pad(frame, ((200,200),(200,200),(0,0)), mode='constant')
         in_h = frame.shape[0]
         in_w = frame.shape[1]
         scale_percent = (1024 / in_h)
@@ -305,14 +307,10 @@ def inference(media_path, net_factor=32, model='mpii'):
                                 (0, 0, 255), 2, lineType=cv2.LINE_AA)
             except TypeError:
                 pass
-        try:
-            angles = calculate_angles_mpii(np.array(points))
-        except:
-            pass
-        # cv2.imshow('inference', frame)
-        # cv2.imwrite('/home/carmelo/Documents/pose/data_processing/mpii_keypoints.png', frame)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+        # try:
+        angles = calculate_angles_mpii(np.array(points))
+        # except:
+        #     pass
     else:
         frame = points = angles = None
         print('File type not supported!: ' + media_path)
@@ -331,5 +329,31 @@ def do_example_workflow():
 
 
 def do_an_inference():
-    media_path = '/home/carmelo/Documents/pose/data_processing/biker.jpg'
-    frame, points, angles = inference(media_path, model='mpii')
+    images = ['bike0.jpg', 'bike1.jpg', 'bike10.jpg', 'bikebike.jpg', 'mtp.jpeg', 'person.jpg', 'tester.JPG',
+              'tester_notblank.JPG']
+    for image in images:
+        media_path = '/home/carmelo/Documents/pose/data_processing/' + image
+        frame, points, angles = inference(media_path, net_factor=18, model='mpii')
+        y_start = frame.shape[1]
+        text = "{:<20} {:<15} {:<10}".format('Pair', 'Joint-Numbers', 'Angle') + '\n'
+        keys = angles.keys()
+        for key in keys:
+            key_text = key.split(' ')
+            key_value = str(np.abs(angles[key])[0])
+            f = "{:<20} {:<15} {:<10}".format(key_text[0], key_text[1], key_value)
+            text = text + f + '\n'
+        frame = np.hstack((frame, np.zeros((frame.shape[0], 750, 3)).astype('uint8')))
+        angle_text = text.split('\n')
+        for idx, line in enumerate(angle_text):
+            line = line.split()
+            locations = [y_start + 10, y_start + 350, y_start + 625]
+            for ii, l in enumerate(line):
+                cv2.putText(frame, l, (locations[ii], (idx * 50) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                            (255, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.imshow('inference', frame)
+        # cv2.imwrite('/home/carmelo/Documents/pose/data_processing/mpii_keypoints.png', frame)
+        cv2.imwrite('/home/carmelo/Desktop/example0.png', frame)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+# do_an_inference()

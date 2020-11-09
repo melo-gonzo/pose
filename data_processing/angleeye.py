@@ -1,3 +1,4 @@
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 from email.message import EmailMessage
@@ -37,6 +38,7 @@ class FetchEmail():
 
     def send_email(self, angle_text, attachment_path=''):
         attachment = open(attachment_path, 'rb').read()
+        documentation = open('/home/carmelo/Documents/pose/angleeye_quickstart.pdf', 'rb').read()
         msg = MIMEMultipart()
         msg['Subject'] = 'Angle Eye AI Results!'
         msg['To'] = self.output_email
@@ -46,6 +48,10 @@ class FetchEmail():
         body_text = body_text + angle_text if angle_text is not None else body_text
         text = MIMEText(body_text)
         msg.attach(text)
+        pdf = MIMEApplication(documentation)
+        fname = 'Quick Start Guide'
+        pdf.add_header('Content-Disposition', 'attachment', filename=fname)
+        msg.attach(pdf)
         image = MIMEImage(attachment, name=os.path.basename(attachment_path))
         msg.attach(image)
         time.sleep(0.1)
@@ -68,7 +74,7 @@ class FetchEmail():
             key_value = str(np.abs(angles[key])[0])
             f = "{:<20} {:<15} {:<10}".format(key_text[0], key_text[1], key_value)
             text = text + f + '\n'
-        text_top = text_top + text + '\nEnjoy your data!'
+        text_top = text_top + '\nEnjoy your data!'
         v = open('results.txt', 'w')
         v.write(text)
         v.close()
@@ -159,10 +165,8 @@ def do_email_thang():
                     angle_text = angle_text.split('\n')
                     for idx, line in enumerate(angle_text):
                         line = line.split()
-                        print(line)
                         locations = [y_start + 10, y_start + 350, y_start+625]
                         for ii, l in enumerate(line):
-                            print(ii)
                             cv2.putText(frame, l, (locations[ii], (idx * 50) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                         (255, 255, 255), 2, lineType=cv2.LINE_AA)
                     inference_path = att_path.split('.')
