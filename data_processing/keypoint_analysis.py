@@ -333,7 +333,7 @@ def do_an_inference():
               'tester_notblank.JPG']
     for image in images:
         media_path = '/home/carmelo/Documents/pose/data_processing/' + image
-        frame, points, angles = inference(media_path, net_factor=18, model='mpii')
+        frame, points, angles = inference(media_path, net_factor=30, model='mpii')
         y_start = frame.shape[1]
         text = "{:<20} {:<15} {:<10}".format('Pair', 'Joint-Numbers', 'Angle') + '\n'
         keys = angles.keys()
