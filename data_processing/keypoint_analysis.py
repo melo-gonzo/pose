@@ -5,17 +5,19 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import traceback
 import json
 import cv2
 import os
 
+
 # download one of the output folders with json files from google drive
 # put in the path to that data here
-file_name = 'slow'
+# file_name = 'slow'
 # video_name = '3_.avi'
-data_path = '/home/carmelo/Documents/pose/keypoint_data/' + file_name + '/'
+# data_path = '/home/carmelo/Documents/pose/keypoint_data/' + file_name + '/'
 # video_path = '/home/carmelo/Documents/pose/videos/' + video_name
-video_path = '/home/carmelo/Documents/pose/keypoint_data/slow/lateral_9_17_2020.mov'
+# video_path = '/home/carmelo/Documents/pose/keypoint_data/slow/lateral_9_17_2020.mov'
 
 
 def get_keypoint_data(data_path):
@@ -137,7 +139,6 @@ def center_data(d):
 
 def calculate_angles_mpii(d):
     vert = (0, -1)
-    # horiz = (1, 0)
     angle_dict = {'Head-Vert (0,1),(Vert)': [],
                   'Head-Spine (0,1),(1,14)': [],
                   'RHumerus-Spine (3,2),(1,14)': [],
@@ -227,45 +228,102 @@ def crop_and_center_video(video_path, d):
     return all_frames, d
 
 
-def inference(media_path, net_factor=30, model='mpii'):
+def get_model(model='body_25'):
+    model_path = '/home/carmelo/Documents/pose/models/pose/'
     if model == 'mpii':
-        protoFile = '/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_deploy_linevec_faster_4_stages.prototxt'
-        weightsFile = "/home/carmelo/Documents/pose/openpose/models/pose/mpi/pose_iter_160000.caffemodel"
+        protoFile = model_path +'/' + model +'/' + 'pose_deploy_linevec.prototxt'
+        weightsFile = model_path +'/' + model +'/' + 'pose_iter_160000.caffemodel'
         connections = [(0, 1), (1, 2), (1, 5), (2, 3), (3, 4), (5, 6), (6, 7), (1, 14), (14, 11), (14, 8), (8, 9),
                        (9, 10), (11, 12), (12, 13)]
         colors = [(53, 2, 153), (0, 53, 152), (0, 152, 103), (1, 98, 154), (5, 152, 154), (0, 155, 49), (0, 153, 0),
                   (0, 0, 153), (155, 103, 0), (53, 154, 0), (101, 153, 0), (151, 152, 2), (153, 51, 0), (153, 0, 0)]
     elif model == 'body_25':
-        protoFile = '/home/carmelo/Documents/pose/openpose/models/pose/body_25/pose_deploy.prototxt'
-        weightsFile = "/home/carmelo/Documents/pose/openpose/models/pose/body_25/pose_iter_584000.caffemodel"
+        protoFile = model_path +'/' + model +'/' + 'pose_deploy.prototxt'
+        weightsFile = model_path +'/' + model +'/' + 'pose_iter_584000.caffemodel'
         connections = [(17, 15), (15, 0), (0, 16), (16, 18), (0, 1), (1, 2), (2, 3), (3, 4), (1, 5),
                        (5, 6), (6, 7), (1, 8), (8, 9), (9, 10), (10, 11), (11, 24), (11, 22), (22, 23),
                        (8, 12), (12, 13), (13, 14), (14, 21), (14, 19), (19, 20)]
+        colors = [(0, 255, 255) for _ in range(len(connections))]
+    elif model == 'coco':
+        protoFile = model_path + '/' + model + '/' + 'pose_deploy.prototxt'
+        weightsFile = model_path + '/' + model + '/' + 'pose_iter_440000.caffemodel'
+
     net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
     net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
     net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+    return net, connections, colors
+
+
+def inference(media_path):
+
     file_type = media_path.split('.')[-1]
     photo_types = ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG']
     video_types = ['mov', 'avi', 'mp4', 'MOV', 'AVI', 'MP4']
     video = True if file_type in video_types else False
     photo = True if file_type in photo_types else False
     thresh = 0.1
+    # video = True
     if video:
-        frame = points = angles = None
-        print('Do video pipeline :)')
+        cap = cv2.VideoCapture(0)
+        # while cv2.waitKey(1) < 0:
+        #     ret, frame = cap.read()
+        #     net_w = int(16*((368*(frame.shape[1]/frame.shape[0]))//16))#int(16 * net_factor)
+        #     net_h = 420#int(16 * net_factor)
+        #     inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (net_w, net_h), (0,0,0), swapRB=False, crop=False)
+        #     print(inpBlob.shape)
+        #     net.setInput(inpBlob)
+        #     output = net.forward()
+        #     out_h = output.shape[2]
+        #     out_w = output.shape[3]
+        #     points = []
+        #     x_data, y_data = [], []
+        #     # Iterate through the returned output and store the data
+        #     # A bit of a hack for right now, should be cleaned up
+        #     # frame = np.zeros((in_h,in_w,3)).astype('uint8')
+        #     frame = cv2.resize(frame, (int(frame.shape[1] * (1024 / frame.shape[0])), 1024), interpolation=cv2.INTER_AREA)
+        #     in_h = frame.shape[0]
+        #     in_w = frame.shape[1]
+        #     for i in range(len(connections) + 1):
+        #         probMap = output[0, i, :, :]
+        #         minVal, prob, minLoc, point = cv2.minMaxLoc(probMap)
+        #         x = (in_w * point[0]) / out_w
+        #         y = (in_h * point[1]) / out_h
+        #         if prob > thresh:
+        #             points.append((int(x), int(y)))
+        #             x_data.append(x)
+        #             y_data.append(y)
+        #             cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 255), thickness=-1, lineType=cv2.FILLED)
+        #         else:
+        #             points.append((0, 0))
+        #             x_data.append(0)
+        #             y_data.append(0)
+        #     for idx, pair in enumerate(connections):
+        #         partA = pair[0]
+        #         partB = pair[1]
+        #         if points[partA][0] != 0 and points[partB][0] != 0:
+        #             cv2.line(frame, points[partA], points[partB], colors[idx], 3)
+        #     for idx, pt in enumerate(points):
+        #         try:
+        #             x = pt[0]
+        #             y = pt[1]
+        #             if idx > 9:
+        #                 cv2.putText(frame, "{}".format(idx), (int(x - 50), int(y - 13)), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        #                             (0, 0, 255), 2, lineType=cv2.LINE_AA)
+        #             else:
+        #                 cv2.putText(frame, "{}".format(idx), (int(x - 25), int(y - 13)), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        #                             (0, 0, 255), 2, lineType=cv2.LINE_AA)
+        #         except TypeError:
+        #             pass
+        #     t, _ = net.getPerfProfile()
+        #     freq = cv2.getTickFrequency() / 1000
+        #     cv2.putText(frame, '%.2fms' % (t / freq), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
+        #     cv2.imshow('OpenPose using OpenCV', frame)
     elif photo:
         frame = cv2.imread(media_path)
-        # frame = np.pad(frame, ((200,200),(200,200),(0,0)), mode='constant')
-        in_h = frame.shape[0]
-        in_w = frame.shape[1]
-        scale_percent = (1024 / in_h)
-        frame = cv2.resize(frame,
-                           (int(in_w * scale_percent), int(in_h * scale_percent)))  # , interpolation=cv2.INTER_AREA)
-        in_h = frame.shape[0]
-        in_w = frame.shape[1]
-        inWidth = int(16 * net_factor)
-        inHeight = int(16 * net_factor)
-        inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (inWidth, inHeight), (0, 0, 0), swapRB=False, crop=False)
+        net_w = int(16*(1+(368*(frame.shape[1]/frame.shape[0]))//16))#int(16 * net_factor)
+        net_h = 384 #int(16 * net_factor)
+        inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (net_w, net_h), (125, 125, 125), swapRB=False, crop=False)
+        print(inpBlob.shape)
         net.setInput(inpBlob)
         output = net.forward()
         out_h = output.shape[2]
@@ -275,6 +333,9 @@ def inference(media_path, net_factor=30, model='mpii'):
         # Iterate through the returned output and store the data
         # A bit of a hack for right now, should be cleaned up
         # frame = np.zeros((in_h,in_w,3)).astype('uint8')
+        frame = cv2.resize(frame, (int(frame.shape[1] * (1024 / frame.shape[0])), 1024), interpolation=cv2.INTER_AREA)
+        in_h = frame.shape[0]
+        in_w = frame.shape[1]
         for i in range(len(connections) + 1):
             probMap = output[0, i, :, :]
             minVal, prob, minLoc, point = cv2.minMaxLoc(probMap)
@@ -300,24 +361,24 @@ def inference(media_path, net_factor=30, model='mpii'):
                 y = pt[1]
                 if idx > 9:
                     cv2.putText(frame, "{}".format(idx), (int(x - 50), int(y - 13)), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                                (0, 0, 255),
-                                2, lineType=cv2.LINE_AA)
+                                (0, 0, 255), 2, lineType=cv2.LINE_AA)
                 else:
                     cv2.putText(frame, "{}".format(idx), (int(x - 25), int(y - 13)), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                 (0, 0, 255), 2, lineType=cv2.LINE_AA)
             except TypeError:
                 pass
-        # try:
-        angles = calculate_angles_mpii(np.array(points))
-        # except:
-        #     pass
+        if model == 'mpii':
+            angles = calculate_angles_mpii(np.array(points))
+        elif model == 'body_25':
+            print('angles not supported yet')
+            angles = None
     else:
         frame = points = angles = None
         print('File type not supported!: ' + media_path)
     return frame, points, angles
 
 
-def do_example_workflow():
+def do_example_video_workflow():
     d = get_keypoint_data(data_path).astype('int')
     frames, d_centered = crop_and_center_video(video_path, d)
     d_corrected = correct_tilt(d_centered)
@@ -328,32 +389,38 @@ def do_example_workflow():
     plt.legend()
 
 
-def do_an_inference():
-    images = ['bike0.jpg', 'bike1.jpg', 'bike10.jpg', 'bikebike.jpg', 'mtp.jpeg', 'person.jpg', 'tester.JPG',
-              'tester_notblank.JPG']
+def do_batch_inference():
+    media_path = '/home/carmelo/Documents/pose/data_processing/test_images/'
+    images = os.listdir(media_path)
     for image in images:
-        media_path = '/home/carmelo/Documents/pose/data_processing/' + image
-        frame, points, angles = inference(media_path, net_factor=30, model='mpii')
-        y_start = frame.shape[1]
-        text = "{:<20} {:<15} {:<10}".format('Pair', 'Joint-Numbers', 'Angle') + '\n'
-        keys = angles.keys()
-        for key in keys:
-            key_text = key.split(' ')
-            key_value = str(np.abs(angles[key])[0])
-            f = "{:<20} {:<15} {:<10}".format(key_text[0], key_text[1], key_value)
-            text = text + f + '\n'
-        frame = np.hstack((frame, np.zeros((frame.shape[0], 750, 3)).astype('uint8')))
-        angle_text = text.split('\n')
-        for idx, line in enumerate(angle_text):
-            line = line.split()
-            locations = [y_start + 10, y_start + 350, y_start + 625]
-            for ii, l in enumerate(line):
-                cv2.putText(frame, l, (locations[ii], (idx * 50) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                            (255, 255, 255), 2, lineType=cv2.LINE_AA)
-        cv2.imshow('inference', frame)
-        # cv2.imwrite('/home/carmelo/Documents/pose/data_processing/mpii_keypoints.png', frame)
-        cv2.imwrite('/home/carmelo/Desktop/example0.png', frame)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        try:
+            frame, points, angles = inference(media_path + image, net_factor=0, model='body_25')
+            y_start = frame.shape[1]
+            text = "{:<20} {:<15} {:<10}".format('Pair', 'Vecotrs', 'Angle') + '\n'
+            keys = angles.keys()
+            for key in keys:
+                key_text = key.split(' ')
+                key_value = str(np.abs(angles[key])[0])
+                f = "{:<20} {:<15} {:<10}".format(key_text[0], key_text[1], key_value)
+                text = text + f + '\n'
+            frame = np.hstack((frame, np.zeros((frame.shape[0], 750, 3)).astype('uint8')))
+            angle_text = text.split('\n')
+            for idx, line in enumerate(angle_text):
+                line = line.split()
+                locations = [y_start + 10, y_start + 350, y_start + 625]
+                for ii, l in enumerate(line):
+                    cv2.putText(frame, l, (locations[ii], (idx * 50) + 50), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                                (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            # cv2.imshow('inference', frame)
+            cv2.imwrite(media_path + 'results/' + image, frame)
+            # cv2.waitKey(0)
+        except Exception:
+            try:
+                cv2.imwrite(media_path + 'results/' + image, frame)
+            except Exception:
+                pass
+            print(traceback.format_exc())
+    cv2.destroyAllWindows()
 
-# do_an_inference()
+
+do_batch_inference()

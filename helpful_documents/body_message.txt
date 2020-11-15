@@ -1,0 +1,9 @@
+You're one of the first users of Angle Eye AI! I'm trying to draw a stick figure on you using artificial intelligence. This works by identifying key joints in your body like your elbows, knees, shoulders and ankles. Using this information, some joint-angles are calculated which tell you how certain limbs are positioned relative to one another. You can use this information to analyze your form for: running, lifting, cycling, and more! Check out the attached quick start guide for information on how you can utilize this interface and get the best results possible.
+
+The results from your image are also attached. Enjoy the data!
+
+Note that due to attachment size limits, we cannot process and send videos for you at this time. If you want to analyze a video, you can still send it and give us a specific request to upload a google drive link to the results
+
+
+Best,
+AngleEyeAI
