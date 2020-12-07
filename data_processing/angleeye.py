@@ -9,6 +9,7 @@ import time
 import os
 from inference import *
 
+print('hello luke')
 
 class FetchEmail():
     connection = None
