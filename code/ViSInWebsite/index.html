@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Vi.S.In</title>
+    <h1>Vi.S.In</h1>
+    <h2>Visual Sports Intelligence</h2>
+    <h3>Biometric Data, Computer Vision, and Artificial Intelligence</h3>
+  </head>
+  <style>
+    p {
+      margin: 0 0 1.75em;
+      width: 80%;
+    }
+    ul {
+      width: 80%;
+    }
+  </style>
+  <body>
+    <p>
+      <a href="https://visinai.com/visin_webcam.html"
+        ><strong>Take me to the webcam demo!</strong></a
+      >
+    </p>
+    <p>
+      <a href="https://visinai.com/visin_photo.html"
+        ><strong>Take me to the photo upload demo!</strong></a
+      >
+    </p>
+    <p>
+      <a href="https://visinai.com/visin_video.html"
+        ><strong>Take me to the video upload demo!</strong></a
+      >
+    </p>
+    <p>
+      Welcome to Visual Sports Intelligence (Vi.S.In). This is an artificial
+      intelligence powered application aimed at helping athletes, physical
+      therapists, exercise physiologists and coaches gain a deeper insight into
+      the way our bodies move. Understanding the way we move helps us prevent
+      injuries, strengthen weak muscle groups and shows us where efficiency may
+      be gained through posture and technique adjustments. With Vi.S.In, we take
+      the guess work out of analyzing posture by quantifying key angles made
+      between body parts during exercise. Pairing our analytic software and
+      raw-data outputs with expert sports domain knowledge may help athletes
+      improve in a shorter amount of time by utilizing actionable insights from
+      data. Independent athletes may take their analytics from Vi.S.In and do
+      further research to understand their data, or domain experts may use this
+      tool to expedite the initial evaluation phase before narrowing down
+      treatment options. Whatever the use case – Vi.S.In provides data quickly
+      and intuitively for athletes, physical therapists, and coaches to expedite
+      the growth process.
+    </p>
+
+    <p>
+      Our application is based on the research done by Google Brain’s
+      TensorFlow.js team and uses models from their pose detection research.
+      Vi.S.In aims to leverage and transform these accessible models into
+      applications that anyone can use and understand. Our application is set up
+      with a default high accuracy configuration for PoseNet - a 17 keypoint
+      detection model. A set of 14 different angle measurement pairs are
+      calculated!
+    </p>
+
+    <p>
+      To get started, visit the one of the demo pages. A high accuracy default
+      network configuration is preloaded, however sometimes the models fail to
+      recognize the pose. Try some of the following tips and tricks to get the
+      best pose estimation results for images, videos, and webcam streams:
+    </p>
+    <ul>
+      <li>
+        Crop the image or adjust the camera so the person of interest is in the
+        center of the frame
+      </li>
+      <li>
+        Use am image with a clear view of the person, with no limbs out of frame
+      </li>
+      <li>
+        Try to have the person stick out from the background scene as much as
+        possible
+      </li>
+      <li>Use a clear image in good lighting, try to avoid blurry images</li>
+      <li>
+        If getting a still photo at the perfect time is hard, try taking a video
+        first, then uploading a screenshot of a specific frame
+      </li>
+    </ul>
+
+    <p>
+      The Vi.S.In software is capable of outputting detailed information about
+      the images it is processing. Use the interactive buttons on the angle
+      table to visually show which joint angle is being measured with the
+      <strong>Show</strong> button. If the opposite angle is desired (i.e.,
+      measuring clockwise vs. counter-clockwise), toggle the
+      <strong>Opposite</strong> button.
+    </p>
+    <p>
+      Each demo comes with some configurable parameters that can speed up model
+      inference or improve the inference results. For real time video streaming
+      from the webcam, change the FPS (Frames Per Second) to increase the rate
+      at which frames are processed. Additionally, change the image size to see
+      its effect on FPS. There are two models which may be used – MoveNet and
+      PoseNet. MoveNet is the higher speed and accuracy configuration. By
+      default, the <strong>thunder</strong> model is loaded, which is higher
+      accuracy. Try the <strong>lightning</strong> model for faster processing.
+      PoseNet will allow you to detect multiple people in one frame, however
+      angle for every person are not tracked. If your output is missing some
+      limbs in the drawing, try decreasing the score threshold.
+    </p>
+  </body>
+</html>

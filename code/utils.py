@@ -8,7 +8,6 @@ import os
 
 def get_model_data(model='body_25'):
     model_path = '/home/carmelo/Documents/pose/models/pose/'
-
     protoFile = model_path + '/' + model + '/' + 'pose_deploy.prototxt'
     weightsFile = model_path + '/' + model + '/' + 'pose_iter_584000.caffemodel'
     body_parts = {"Nose": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
@@ -48,12 +47,10 @@ def get_model_data(model='body_25'):
 
     angle_names = ['-'.join(ap[0]) + ':' + '-'.join(ap[1]) for ap in angle_pairs]
     angle_dict = dict(zip(angle_names, [[] for _ in range(len(angle_names))]))
+    kp_dict = dict(zip(body_parts, [[] for _ in range(len(body_parts))]))
     colors = [cm.jet(k, bytes=True)[0:3] for k in np.arange(0, 256, int(265 / (len(body_parts))))]
     colors = [(int(color[0]), int(color[1]), int(color[2])) for color in colors]
-    net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
-    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
-    return net, body_parts, pairs, angle_dict, angle_pairs, colors
+    return body_parts, pairs, kp_dict, angle_dict, angle_pairs, colors
 
 
 def get_angle(v1, v2):
@@ -263,12 +260,53 @@ def print_keys(angle_dict):
 
 
 def plot_specific_angles(angle_dict, plots=[]):
-plots = [['RHip-RKnee:Vert', 'LHip-LKnee:Vert'], ['RHeel-RBigToe:Horiz', 'LHeel-LBigToe:Horiz']]
-fig, ax = plt.subplots(len(plots), 1, sharex=True)
-for idx, sub in enumerate(plots):
-    for line in sub:
-        ax[idx].plot(np.abs(np.array((angle_dict[line]))), label=line)
-    ax[idx].legend()
+    plots = [['RHip-RKnee:Vert', 'LHip-LKnee:Vert'], ['RHeel-RBigToe:Horiz', 'LHeel-LBigToe:Horiz']]
+    fig, ax = plt.subplots(len(plots), 1, sharex=True)
+    for idx, sub in enumerate(plots):
+        for line in sub:
+            ax[idx].plot(np.abs(np.array((angle_dict[line]))), label=line)
+        ax[idx].legend()
 
 
-# def compare
+def get_bounding_box(points):
+    p = np.array([pnt for pnt in points if pnt != (0, 0)])
+    x_coordinates, y_coordinates = zip(*p)
+    return min(x_coordinates), min(y_coordinates), max(x_coordinates), max(y_coordinates)
+
+
+def skeleton(kp_dict, frame=None, color='Default'):
+    body_parts, pairs, _, _, _, colors = get_model_data(model="body25")
+    if color != "Default":
+        colors = [color]*len(colors)
+    points = [kp_dict[val][0] for val in kp_dict.keys()]
+    x_min, y_min, x_max, y_max = get_bounding_box(points)
+    points = np.array(points)
+    for k in range(len(points[:, 0])):
+        if points[k, 0] == 0 and points[k, 1] == 0:
+            pass
+        else:
+            points[k, 0] = points[k, 0] - x_min
+            points[k, 1] = points[k, 1] - y_min
+    points = [(k[0], k[1]) for k in points]
+    if frame is None:
+        frame = np.ones((y_max - y_min, x_max - x_min, 3)).astype('uint8')
+    for idx, pair in enumerate(pairs[:-1]):
+        part_a = pair[0]
+        part_b = pair[1]
+        assert (part_a in body_parts)
+        assert (part_b in body_parts)
+        idx_a = body_parts[part_a]
+        idx_b = body_parts[part_b]
+        if points[idx_a] and points[idx_b]:
+            if points[idx_a] != (0, 0) and points[idx_b] != (0, 0):
+                cv2.line(frame, points[idx_a], points[idx_b], colors[idx], 3)
+            if points[idx_a] != (0, 0):
+                cv2.circle(frame, points[idx_a], 5, colors[idx], thickness=-1, lineType=cv2.FILLED)
+            if points[idx_b] != (0, 0):
+                cv2.circle(frame, points[idx_b], 5, colors[idx], thickness=-1, lineType=cv2.FILLED)
+    return frame
+    # cv2.imshow('', frame)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+    # def compare
