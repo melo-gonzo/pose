@@ -12,15 +12,36 @@
    ==============================================================================-->
 
 <html>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script
+    async
+    src="https://www.googletagmanager.com/gtag/js?id=G-5MHLE4GBVN"
+  ></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+
+    gtag("config", "G-5MHLE4GBVN");
+  </script>
   <head>
-    <title>Vi.S.In</title>
-    <h3>Note: Video must be a .webm extension. 
+    <title>Vi.S.In Video</title>
+    <h3>Note: Video must be a .webm extension.</h3>
+    <h3>
+      Try using a converter such as
+      <a href="https://cloudconvert.com/">Video Converter</a> to convert your
+      video.
     </h3>
-    <h3>Simply try renaming
-        your file with this extension if it is not already .webm.</h3>
     <input type="file" name="filename" id="file" />
-    <button type="button" id="imageButton">Run Inference</button>
-    <select>Select Frame</select>
+
+    <div class="buttons">
+      <button type="button" id="imageButton">Run Inference</button>
+    </div>
+    <select>
+      Select Frame
+    </select>
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -56,16 +77,16 @@
         <div class="canvas-wrapper">
           <canvas id="output"></canvas>
           <video
-          id="video"
-          playsinline
-          style="
-            -webkit-transform: scaleX(-1);
-            transform: scaleX(-1);
-            visibility: hidden;
-            width: auto;
-            height: auto;
-          "
-        ></video>
+            id="video"
+            playsinline
+            style="
+              -webkit-transform: scaleX(-1);
+              transform: scaleX(-1);
+              visibility: hidden;
+              width: auto;
+              height: auto;
+            "
+          ></video>
           <!-- <canvas id="video"></canvas> -->
         </div>
         <div class="AngleTable" id="angletable">
@@ -81,4 +102,5 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
   <script src="./visin_video.js" type="module"></script>
+  <h6>v1.3.1</h6>
 </html>

@@ -1,5 +1,19 @@
 <!DOCTYPE html>
 <html>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script
+    async
+    src="https://www.googletagmanager.com/gtag/js?id=G-5MHLE4GBVN"
+  ></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+
+    gtag("config", "G-5MHLE4GBVN");
+  </script>
   <head>
     <title>Vi.S.In</title>
     <h1>Vi.S.In</h1>
@@ -45,13 +59,13 @@
       data. Independent athletes may take their analytics from Vi.S.In and do
       further research to understand their data, or domain experts may use this
       tool to expedite the initial evaluation phase before narrowing down
-      treatment options. Whatever the use case – Vi.S.In provides data quickly
+      treatment options. Whatever the use case, Vi.S.In provides data quickly
       and intuitively for athletes, physical therapists, and coaches to expedite
       the growth process.
     </p>
 
     <p>
-      Our application is based on the research done by Google Brain’s
+      Our application is based on the research done by Google Brains
       TensorFlow.js team and uses models from their pose detection research.
       Vi.S.In aims to leverage and transform these accessible models into
       applications that anyone can use and understand. Our application is set up
@@ -98,7 +112,7 @@
       inference or improve the inference results. For real time video streaming
       from the webcam, change the FPS (Frames Per Second) to increase the rate
       at which frames are processed. Additionally, change the image size to see
-      its effect on FPS. There are two models which may be used – MoveNet and
+      its effect on FPS. There are two models which may be used: MoveNet and
       PoseNet. MoveNet is the higher speed and accuracy configuration. By
       default, the <strong>thunder</strong> model is loaded, which is higher
       accuracy. Try the <strong>lightning</strong> model for faster processing.
@@ -107,4 +121,5 @@
       limbs in the drawing, try decreasing the score threshold.
     </p>
   </body>
+  <h6>v1.3.1</h6>
 </html>

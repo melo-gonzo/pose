@@ -159,6 +159,11 @@ export function getAngleTable(predictedPoses) {
     if (oppositeButton == "Reverse") {
       angle = Math.abs(Math.round(100 * (360 - angle)) / 100);
     }
+    let flip_button = "flip_button" + String(i);
+    let flipButton = document.getElementById(flip_button).value;
+    if (flipButton == "Flipped") {
+      angle = Math.abs(Math.round(100 * (angle - 180)) / 100);
+    }
     const angel_between = [
       angle_pairs[i][0].join("-"),
       angle_pairs[i][1].join("-"),
@@ -171,7 +176,6 @@ export function getAngleTable(predictedPoses) {
       var context = canvas.getContext("2d");
       var text = angle;
       context.font = "25px Arial";
-      context.fillStyle = "0,0,0";
       let x, y;
       if (
         x1 != 0 &&
@@ -216,10 +220,11 @@ export function getAngleTable(predictedPoses) {
           (Math.max(...[x1, x2]) - Math.min(...[x1, x2])) / 2 +
           Math.min(...[x1, x2]);
       }
+      context.fillStyle = "#32CD32";
       context.fillText(text, x, y);
+      // context.fillStyle = "#32CD32";
       const circle = new Path2D();
       circle.arc(x, y, 4, 0, 2 * Math.PI);
-      context.fillStyle = "Black";
       context.fill(circle);
       context.stroke(circle);
     }
@@ -228,10 +233,11 @@ export function getAngleTable(predictedPoses) {
 }
 
 export function createAngleTable() {
+  console.log('in')
   let table = document.querySelector("table");
   let thead = table.createTHead();
   let row = thead.insertRow();
-  let data = ["Show", "Opposite", "Pair", "Angle"];
+  let data = ["Show", "Opposite", "Flip (-180)", "Pair", "Angle"];
   for (let key of data) {
     let th = document.createElement("th");
     let text = document.createTextNode(key);
@@ -249,6 +255,7 @@ export function createAngleTable() {
   const angle_keys = Object.keys(angle_dict);
   var show_buttons = [];
   var opposite_buttons = [];
+  var flip_buttons = [];
   for (var i = 0; i < angle_keys.length; i++) {
     let row = table.insertRow();
     let cell0 = row.insertCell();
@@ -258,6 +265,7 @@ export function createAngleTable() {
     show_buttons[i].className = "btn";
     show_buttons[i].value = "Off";
     show_buttons[i].id = "show_button" + String(i);
+    show_buttons[i].style.color = "Black";
     show_buttons[i].onclick = (function (btn) {
       return function () {
         switch (btn.value) {
@@ -285,6 +293,7 @@ export function createAngleTable() {
     opposite_buttons[i].className = "btn";
     opposite_buttons[i].value = "Regular";
     opposite_buttons[i].id = "opposite_button" + String(i);
+    opposite_buttons[i].style.color = "Black";
     opposite_buttons[i].onclick = (function (btn) {
       return function () {
         switch (btn.value) {
@@ -307,11 +316,40 @@ export function createAngleTable() {
       "Green";
 
     let cell2 = row.insertCell();
-    let text2 = document.createTextNode([angle_keys[i]]);
-    cell2.appendChild(text2);
+    var btn2 = document.createElement("input");
+    flip_buttons.push(btn2);
+    flip_buttons[i].type = "button";
+    flip_buttons[i].className = "btn";
+    flip_buttons[i].value = "Flip";
+    flip_buttons[i].id = "flip_button" + String(i);
+    flip_buttons[i].style.color = "Black";
+    flip_buttons[i].onclick = (function (btn) {
+      return function () {
+        switch (btn.value) {
+          case "Flip":
+            btn.value = "Flipped";
+            document.getElementById(btn.id).style.backgroundColor = "Red";
+            break;
+          case "Flipped":
+            btn.value = "Flip";
+            document.getElementById(btn.id).style.backgroundColor = "Green";
+            break;
+          default:
+            btn.value = "Flip";
+            document.getElementById(btn.id).style.backgroundColor = "Green";
+        }
+      };
+    })(flip_buttons[i]);
+    cell2.appendChild(flip_buttons[i]);
+    document.getElementById(flip_buttons[i].id).style.backgroundColor =
+      "Green";
+
     let cell3 = row.insertCell();
-    let text3 = document.createTextNode([angle_dict[angle_keys[i]]]);
+    let text3 = document.createTextNode([angle_keys[i]]);
     cell3.appendChild(text3);
+    let cell4 = row.insertCell();
+    let text4 = document.createTextNode([angle_dict[angle_keys[i]]]);
+    cell4.appendChild(text4);
   }
 }
 
@@ -320,7 +358,7 @@ export function updateAngleTable(angle_dict) {
   let table = document.querySelector("table");
   for (var i = 0; i < angle_keys.length; i++) {
     const new_angle = angle_dict[0][angle_keys[i]];
-    table.rows[i + 1].cells[3].innerHTML = new_angle;
+    table.rows[i + 1].cells[4].innerHTML = new_angle;
   }
 }
 

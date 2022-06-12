@@ -344,6 +344,7 @@ export class Upload {
    * @param keypoints A list of keypoints.
    */
   drawSkeleton(keypoints) {
+    console.log('drawSkeleton')
     this.ctx.fillStyle = "White";
     this.ctx.strokeStyle = "White";
     this.ctx.lineWidth = params.DEFAULT_LINE_WIDTH;
@@ -379,6 +380,8 @@ export class Upload {
           this.ctx.moveTo(kp1.x, kp1.y);
           this.ctx.lineTo(kp2.x, kp2.y);
           this.ctx.stroke();
+          // this.ctx.fillStyle = "#32CD32"
+          // this.ctx.strokeStyle = "#32CD32"
           this.ctx.fillStyle = colors[j];
           this.ctx.strokeStyle = colors[j];
         }

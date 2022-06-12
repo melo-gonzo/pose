@@ -14,8 +14,11 @@ let inferenceTimeSum = 0,
   lastPanelUpdate = 0;
 let rafId;
 let angle_dict;
+const verbose = true;
+
 
 async function createDetector() {
+  if (verbose) {console.log("createDetector")}
   switch (STATE.model) {
     case poseDetection.SupportedModels.PoseNet:
       return poseDetection.createDetector(STATE.model, {
@@ -49,6 +52,7 @@ async function createDetector() {
 }
 
 async function checkGuiUpdate() {
+  if (verbose) {console.log("checkGuiUpdate")}
   if (STATE.isTargetFPSChanged || STATE.isSizeOptionChanged) {
     camera = await Upload.setupPhoto(STATE.camera);
     STATE.isTargetFPSChanged = false;
@@ -69,6 +73,7 @@ async function checkGuiUpdate() {
 }
 
 async function app() {
+  if (verbose) {console.log("app")}
   const urlParams = new URLSearchParams(window.location.search);
   await setupDatGui(urlParams);
   await setBackendAndEnvFlags(STATE.flags, STATE.backend);
@@ -78,7 +83,7 @@ async function app() {
 }
 
 async function inferenceFromVideoFrame(input_frame) {
-  
+  if (verbose) {"inferenceFromVideoFrame"}
   const input = tf.browser.fromPixels(input_frame);
   const poses = await detector.estimatePoses(input, {
     maxPoses: STATE.modelConfig.maxPoses,
@@ -94,6 +99,7 @@ async function inferenceFromVideoFrame(input_frame) {
 }
 
 async function resizeImage(input_image) {
+  if (verbose) {console.log("resizeImage")}
   const image = new Image();
   var resize_ = 512;
   const promise = new Promise((resolve, reject) => {
@@ -130,10 +136,12 @@ const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
 button.onclick = async (evt) => {
+  if (verbose) {console.log("button.onclick")}
   if (HTMLVideoElement.prototype.requestVideoFrameCallback) {
     let stopped = false;
     const video = await getVideoElement();
     const drawingLoop = async (timestamp, frame) => {
+      console.log('in here')
       const index = frames.length;
       select.append(new Option("Frame #" + (index + 1), index));
       const input_image = await resizeImage(video);
@@ -148,6 +156,7 @@ button.onclick = async (evt) => {
       }
     };
     video.requestVideoFrameCallback(drawingLoop);
+    // button.onclick = (evt) => {button.textContent = "Run Inference Again"}; (stopped = true);
     button.onclick = (evt) => (stopped = true);
     button.textContent = "stop";
   } else {
@@ -156,6 +165,7 @@ button.onclick = async (evt) => {
 };
 
 select.onchange = (evt) => {
+  if (verbose) {console.log("select.onchange")}
   const frame = frames[select.value];
   canvas.width = frame.width;
   canvas.height = frame.height;
@@ -168,9 +178,15 @@ select.onchange = (evt) => {
 };
 
 async function getVideoElement() {
+  if (verbose) {console.log("getVideoElement")}
+
+
+
+
   const video = document.getElementById("video");
   video.crossOrigin = "anonymous";
   var item = document.getElementById("file").files[0];
+  // video.type = "video/" + item.name.split(".")[-1]
   var reader = new FileReader();
   reader.readAsDataURL(item);
   reader.name = item.name;

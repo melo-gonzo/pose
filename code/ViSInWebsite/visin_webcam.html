@@ -11,8 +11,22 @@
    limitations under the License.
    ==============================================================================-->
 <html>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script
+    async
+    src="https://www.googletagmanager.com/gtag/js?id=G-5MHLE4GBVN"
+  ></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+
+    gtag("config", "G-5MHLE4GBVN");
+  </script>
   <head>
-    <title>Vi.S.In</title>
+    <title>Vi.S.In Webcam</title>
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -42,16 +56,6 @@
     </style>
   </head>
   <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript
-      ><iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-P52XQBG"
-        height="0"
-        width="0"
-        style="display: none; visibility: hidden"
-      ></iframe
-    ></noscript>
-    <!-- End Google Tag Manager (noscript) -->
     <div id="stats"></div>
     <div id="main">
       <div class="container">
@@ -82,4 +86,5 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
   <script src="./visin_webcam.js" type="module"></script>
+  <h6>v1.3.1</h6>
 </html>

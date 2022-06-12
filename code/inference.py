@@ -64,7 +64,7 @@ def video_inference(media_path, model, body_parts, pairs, kp_dict, angle_dict, a
     # Custom Params (refer to include/openpose/flags.hpp for more parameters)
     params = dict()
     params["model_folder"] = "/home/carmelo/Projects/Pose/models/"
-    params["net_resolution"] = "-1x480"  # 256, 288, 320, 400, 480
+    params["net_resolution"] = "-1x320"  # 256, 288, 320, 400, 480
     opWrapper = op.WrapperPython()
     opWrapper.configure(params)
     opWrapper.start()
@@ -197,9 +197,9 @@ def get_centered_video(video_path, flip=True):
 
 k = 1
 
-_, angle_dict_1, kps_1 = inference('/home/carmelo/Projects/Pose/videos/GJGolfPhotos/bob4.jpg', flip=False)
-_, angle_dict_2, kps_2 = inference('/home/carmelo/Projects/Pose/videos/GJGolfPhotos/reg4.jpg', flip=False)
-_, angle_dict_3, kps_3 = inference('/home/carmelo/Projects/Pose/videos/GJGolfPhotos/tig4.jpg', flip=False)
+_, angle_dict_1, kps_1 = inference('/home/carmelo/Downloads/20211211_144223.mp4', flip=False, rotate=True)
+# _, angle_dict_2, kps_2 = inference('/home/carmelo/Projects/Pose/videos/GJGolfPhotos/reg4.jpg', flip=False)
+# _, angle_dict_3, kps_3 = inference('/home/carmelo/Projects/Pose/videos/GJGolfPhotos/tig4.jpg', flip=False)
 
 # frame = skeleton(angle_dict_1, color=(255,0,0))
 # frame = skeleton(angle_dict_2, color=(0,0,255), frame=frame)
@@ -208,7 +208,7 @@ _, angle_dict_3, kps_3 = inference('/home/carmelo/Projects/Pose/videos/GJGolfPho
 # cv2.imwrite('/home/carmelo/Projects/Pose/videos/GJGolfPhotos/StartSwing.png', frame)
 
 
-# fig, ax = plt.subplots(1,1)
+fig, ax = plt.subplots(1,1)
 # frame = skeleton(kp_dict1)
 # frame = skeleton(kp_dict2, frame=frame)
 # cv2.imshow('', frame)

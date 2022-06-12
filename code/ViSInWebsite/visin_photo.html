@@ -12,10 +12,26 @@
    ==============================================================================-->
 
 <html>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script
+    async
+    src="https://www.googletagmanager.com/gtag/js?id=G-5MHLE4GBVN"
+  ></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+
+    gtag("config", "G-5MHLE4GBVN");
+  </script>
   <head>
-    <title>Vi.S.In</title>
+    <title>Vi.S.In Photo</title>
     <input type="file" name="filename" id="file" />
+    <div class="buttons">
     <button type="button" id="imageButton">Run Inference</button>
+    </div>
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -42,6 +58,9 @@
       table {
         float: bottom;
       }
+      /* .button{
+        position: absolute
+      } */
     </style>
   </head>
   <body>
@@ -65,4 +84,5 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
   <script src="./visin_photo.js" type="module"></script>
+  <h6>v1.3.1</h6>
 </html>

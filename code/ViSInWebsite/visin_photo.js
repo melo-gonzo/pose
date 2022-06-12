@@ -139,5 +139,6 @@ btn.addEventListener("click", function () {
   loadImageAndInference();
 });
 
+
 createAngleTable();
 app();
