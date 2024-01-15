@@ -23,115 +23,117 @@
             </div>
         </div>
     </div>
-</body>
 
-<script>
-    const verbose = true;
+    <script>
+        const verbose = true;
 
-    const frames = [];
+        const frames = [];
 
-    const button = document.querySelector("button");
-    const select = document.querySelector("select");
+        const button = document.querySelector("button");
+        const select = document.querySelector("select");
 
-    button.onclick = async (evt) => {
-        if (verbose) { console.log("button.onclick") }
-        if (HTMLVideoElement.prototype.requestVideoFrameCallback) {
-            let stopped = false;
-            const video = await getVideoElement();
-            const drawingLoop = async (timestamp, frame) => {
-                const index = frames.length;
-                select.append(new Option("Frame #" + (index + 1), index));
-                const input_image = await resizeImage(video);
-                frames.push(input_image);
-                if (!video.ended && !stopped) {
+        button.onclick = async (evt) => {
+            if (verbose) { console.log("button.onclick") }
+            if (HTMLVideoElement.prototype.requestVideoFrameCallback) {
+                let stopped = false;
+                const video = await getVideoElement();
+                video.addEventListener('canplay', () => {
+                    const drawingLoop = async (timestamp, frame) => {
+                        const index = frames.length;
+                        select.append(new Option("Frame #" + (index + 1), index));
+                        const input_image = await resizeImage(video);
+                        frames.push(input_image);
+                        if (!video.ended && !stopped) {
+                            video.requestVideoFrameCallback(drawingLoop);
+                        } else {
+                            select.disabled = false;
+                        }
+                    };
                     video.requestVideoFrameCallback(drawingLoop);
-                } else {
-                    select.disabled = false;
-                }
-            };
-            video.requestVideoFrameCallback(drawingLoop);
-            button.onclick = (evt) => (stopped = true);
-            button.textContent = "stop";
-        } else {
-            console.error("Your browser doesn't support this API yet");
-        }
-    };
+                });
 
-    async function getVideoElement() {
-        if (verbose) { console.log("getVideoElement") }
-        const video = document.createElement("video");
-        video.crossOrigin = "anonymous";
-        var item = document.getElementById("file").files[0];
-        var reader = new FileReader();
-        reader.readAsDataURL(item);
-        reader.name = item.name;
-        reader.size = item.size;
-        reader.onload = function (event) {
-            video.src = event.target.result;
-            // Append the video to the document
-            document.body.append(video);
-            // Hide the video
-            video.hidden = true;
-            // Play the video
-            video.play();
+                button.onclick = (evt) => (stopped = true);
+                button.textContent = "stop";
+            } else {
+                console.error("Your browser doesn't support this API yet");
+            }
         };
-        return video;
-    }
 
+        async function getVideoElement() {
+            if (verbose) { console.log("getVideoElement") }
+            const video = document.createElement("video");
+            video.crossOrigin = "anonymous";
+            var item = document.getElementById("file").files[0];
+            var reader = new FileReader();
+            reader.readAsArrayBuffer(item);
+            reader.name = item.name;
+            reader.size = item.size;
+            reader.onload = function (event) {
+                const blob = new Blob([event.target.result]);
+                video.src = URL.createObjectURL(blob);
+                // Append the video to the document
+                document.body.append(video);
+                // Hide the video
+                video.hidden = true;
+                // Play the video
+                video.play();
+            };
+            return video;
+        }
 
-    select.onchange = (evt) => {
-        if (verbose) { console.log("select.onchange") }
-        const selectedIndex = select.value;
+        select.onchange = (evt) => {
+            if (verbose) { console.log("select.onchange") }
+            const selectedIndex = select.value;
 
-        if (selectedIndex >= 0 && selectedIndex < frames.length) {
-            const selectedFrame = frames[selectedIndex];
+            if (selectedIndex >= 0 && selectedIndex < frames.length) {
+                const selectedFrame = frames[selectedIndex];
+                const videoCanvas = document.getElementById("output");
+                const ctx = videoCanvas.getContext("2d");
+
+                // Clear the canvas before drawing the new frame
+                ctx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
+
+                // Draw the selected frame onto the video canvas
+                ctx.drawImage(selectedFrame, 0, 0, videoCanvas.width, videoCanvas.height);
+            }
+        };
+
+        async function resizeImage(input_video) {
             const videoCanvas = document.getElementById("output");
             const ctx = videoCanvas.getContext("2d");
 
-            // Clear the canvas before drawing the new frame
-            ctx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
+            var resize_ = 512;
+            var maxWidth = 512; // Set your desired maximum width
+            var maxHeight = 512; // Set your desired maximum height
 
-            // Draw the selected frame onto the video canvas
-            ctx.drawImage(selectedFrame, 0, 0, videoCanvas.width, videoCanvas.height);
+            const promise = new Promise((resolve, reject) => {
+                // Calculate the scaling factors for width and height
+                const widthScaleFactor = maxWidth / input_video.videoWidth;
+                const heightScaleFactor = maxHeight / input_video.videoHeight;
+
+                // Choose the smaller scaling factor to ensure the video fits within the limits
+                const scaleFactor = Math.min(widthScaleFactor, heightScaleFactor);
+
+                // Calculate the scaled dimensions
+                const scaledWidth = input_video.videoWidth * scaleFactor;
+                const scaledHeight = input_video.videoHeight * scaleFactor;
+
+                // Set the canvas dimensions
+                videoCanvas.width = scaledWidth;
+                videoCanvas.height = scaledHeight;
+
+                // Draw the video onto the canvas with the scaled dimensions
+                ctx.drawImage(input_video, 0, 0, scaledWidth, scaledHeight);
+
+                const image = new Image();
+                image.width = scaledWidth;
+                image.height = scaledHeight;
+                image.src = videoCanvas.toDataURL("image/png");
+                resolve(image);
+            });
+
+            return promise;
         }
-    };
-
-    async function resizeImage(input_video) {
-        const videoCanvas = document.getElementById("output");
-        const ctx = videoCanvas.getContext("2d");
-
-        var resize_ = 512;
-        var maxWidth = 512; // Set your desired maximum width
-        var maxHeight = 512; // Set your desired maximum height
-
-        const promise = new Promise((resolve, reject) => {
-            // Calculate the scaling factors for width and height
-            const widthScaleFactor = maxWidth / input_video.videoWidth;
-            const heightScaleFactor = maxHeight / input_video.videoHeight;
-
-            // Choose the smaller scaling factor to ensure the video fits within the limits
-            const scaleFactor = Math.min(widthScaleFactor, heightScaleFactor);
-
-            // Calculate the scaled dimensions
-            const scaledWidth = input_video.videoWidth * scaleFactor;
-            const scaledHeight = input_video.videoHeight * scaleFactor;
-
-            // Set the canvas dimensions
-            videoCanvas.width = scaledWidth;
-            videoCanvas.height = scaledHeight;
-
-            // Draw the video onto the canvas with the scaled dimensions
-            ctx.drawImage(input_video, 0, 0, scaledWidth, scaledHeight);
-
-            const image = new Image();
-            image.width = scaledWidth;
-            image.height = scaledHeight;
-            image.src = videoCanvas.toDataURL("image/png");
-            resolve(image);
-        });
-
-        return promise;
-    }
-</script>
+    </script>
 
 </html>
