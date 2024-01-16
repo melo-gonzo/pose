@@ -5,7 +5,7 @@
     <title>Video</title>
     <input type="file" name="filename" id="file" />
     <div class="buttons">
-        <button type="button" id="imageButton">Play</button>
+        <button type="button" id="imageButton" onclick="togglePlayback()">Play</button>
     </div>
     <select>
         Select Frame
@@ -22,28 +22,42 @@
                 <canvas id="output" width="512" height="512"></canvas>
             </div>
         </div>
+        <div class="frame-controls">
+            <button type="button" id="prevFrameButton" onclick="changeSelectedFrame(-1)">Previous Frame</button>
+            <button type="button" id="nextFrameButton" onclick="changeSelectedFrame(1)">Next Frame</button>
+        </div>
     </div>
 
     <script>
         const verbose = true;
+        let playing = false;
+        let frames = [];
+        let video;
 
-        const frames = [];
-
-        const button = document.querySelector("button");
         const select = document.querySelector("select");
 
-        button.onclick = async (evt) => {
-            if (verbose) { console.log("button.onclick") }
-            if (HTMLVideoElement.prototype.requestVideoFrameCallback) {
-                let stopped = false;
-                const video = await getVideoElement();
+        function togglePlayback() {
+            if (playing) {
+                stopPlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            resetWorkflow();
+            playing = true;
+            document.getElementById("imageButton").textContent = "Stop";
+
+            getVideoElement().then((v) => {
+                video = v;
                 video.addEventListener('canplay', () => {
                     const drawingLoop = async (timestamp, frame) => {
                         const index = frames.length;
                         select.append(new Option("Frame #" + (index + 1), index));
                         const input_image = await resizeImage(video);
                         frames.push(input_image);
-                        if (!video.ended && !stopped) {
+                        if (!video.ended && playing) {
                             video.requestVideoFrameCallback(drawingLoop);
                         } else {
                             select.disabled = false;
@@ -51,31 +65,37 @@
                     };
                     video.requestVideoFrameCallback(drawingLoop);
                 });
+            });
+        }
 
-                button.onclick = (evt) => (stopped = true);
-                button.textContent = "stop";
-            } else {
-                console.error("Your browser doesn't support this API yet");
+        function stopPlayback() {
+            playing = false;
+            document.getElementById("imageButton").textContent = "Play";
+            if (video) {
+                video.pause();
+                video = null;
             }
-        };
+        }
+
+        function resetWorkflow() {
+            frames = [];
+            select.innerHTML = '';
+            document.getElementById("output").getContext("2d").clearRect(0, 0, 512, 512);
+        }
 
         async function getVideoElement() {
-            if (verbose) { console.log("getVideoElement") }
             const video = document.createElement("video");
             video.crossOrigin = "anonymous";
-            var item = document.getElementById("file").files[0];
-            var reader = new FileReader();
+            const item = document.getElementById("file").files[0];
+            const reader = new FileReader();
             reader.readAsArrayBuffer(item);
             reader.name = item.name;
             reader.size = item.size;
             reader.onload = function (event) {
                 const blob = new Blob([event.target.result]);
                 video.src = URL.createObjectURL(blob);
-                // Append the video to the document
                 document.body.append(video);
-                // Hide the video
                 video.hidden = true;
-                // Play the video
                 video.play();
             };
             return video;
@@ -102,27 +122,20 @@
             const videoCanvas = document.getElementById("output");
             const ctx = videoCanvas.getContext("2d");
 
-            var resize_ = 512;
-            var maxWidth = 512; // Set your desired maximum width
-            var maxHeight = 512; // Set your desired maximum height
+            const resize_ = 512;
+            const maxWidth = 512;
+            const maxHeight = 512;
 
-            const promise = new Promise((resolve, reject) => {
-                // Calculate the scaling factors for width and height
+            return new Promise((resolve, reject) => {
                 const widthScaleFactor = maxWidth / input_video.videoWidth;
                 const heightScaleFactor = maxHeight / input_video.videoHeight;
-
-                // Choose the smaller scaling factor to ensure the video fits within the limits
                 const scaleFactor = Math.min(widthScaleFactor, heightScaleFactor);
-
-                // Calculate the scaled dimensions
                 const scaledWidth = input_video.videoWidth * scaleFactor;
                 const scaledHeight = input_video.videoHeight * scaleFactor;
 
-                // Set the canvas dimensions
                 videoCanvas.width = scaledWidth;
                 videoCanvas.height = scaledHeight;
 
-                // Draw the video onto the canvas with the scaled dimensions
                 ctx.drawImage(input_video, 0, 0, scaledWidth, scaledHeight);
 
                 const image = new Image();
@@ -131,8 +144,13 @@
                 image.src = videoCanvas.toDataURL("image/png");
                 resolve(image);
             });
+        }
+        function changeSelectedFrame(offset) {
+            const selectedIndex = parseInt(select.value);
+            const newIndex = (selectedIndex + offset + frames.length) % frames.length;
 
-            return promise;
+            select.value = newIndex;
+            select.onchange(); // Trigger the onchange event to update the displayed frame
         }
     </script>
 
